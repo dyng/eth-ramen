@@ -1,6 +1,10 @@
 package config
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/dyng/ramen/internal/view/style"
+)
 
 const (
 	// DefaultProvider represents the Ethereum provider
@@ -53,4 +57,8 @@ func (c *Config) EtherscanEndpoint() string {
 	} else {
 		return fmt.Sprintf("https://api-%s.etherscan.io/api", c.Network)
 	}
+}
+
+func (c *Config) Style() *style.Style {
+	return style.Ethereum
 }

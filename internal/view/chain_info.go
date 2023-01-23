@@ -24,13 +24,15 @@ func NewChainInfo(app *App) *ChainInfo {
 		app: app,
 	}
 
-	chainInfo.network = util.NewSection("Network", util.NAValue)
+	s := app.config.Style()
+
+	chainInfo.network = util.NewSectionWithColor("Network:", s.SectionColor, util.NAValue, s.FgColor)
 	chainInfo.network.AddToTable(chainInfo.Table, 0, 0)
 
-	chainInfo.height = util.NewSection("Block Height", util.NAValue)
+	chainInfo.height = util.NewSectionWithColor("Block Height:", s.SectionColor, util.NAValue, s.FgColor)
 	chainInfo.height.AddToTable(chainInfo.Table, 1, 0)
 
-	chainInfo.gasPrice = util.NewSection("Gas Price", util.NAValue)
+	chainInfo.gasPrice = util.NewSectionWithColor("Gas Price:", s.SectionColor, util.NAValue, s.FgColor)
 	chainInfo.gasPrice.AddToTable(chainInfo.Table, 2, 0)
 
 	chainInfo.app.eventBus.Subscribe(service.TopicNewBlock, chainInfo.onNewBlock)

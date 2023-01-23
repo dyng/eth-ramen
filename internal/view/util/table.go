@@ -1,6 +1,9 @@
 package util
 
-import "github.com/rivo/tview"
+import (
+	"github.com/gdamore/tcell/v2"
+	"github.com/rivo/tview"
+)
 
 type Section struct {
 	titleCell *tview.TableCell
@@ -8,18 +11,33 @@ type Section struct {
 }
 
 func NewSection(title string, text string) *Section {
+	return NewSectionWithColor(title, tcell.ColorDefault, text, tcell.ColorDefault)
+}
+
+func NewSectionWithColor(title string, titleColor tcell.Color, text string, textColor tcell.Color) *Section {
 	// initialize a title cell
-	titleCell := tview.NewTableCell(title + ":")
-	titleCell.SetAlign(tview.AlignLeft)
+	titleCell := tview.NewTableCell(title)
+	titleCell.SetAlign(tview.AlignLeft).
+		SetTextColor(titleColor)
 
 	// initialize a text cell
 	textCell := tview.NewTableCell(text)
-	textCell.SetExpansion(2)
+	textCell.SetAlign(tview.AlignLeft).
+		SetExpansion(1).
+		SetTextColor(textColor)
 
 	return &Section{
 		titleCell: titleCell,
 		textCell: textCell,
 	}
+}
+
+func (s *Section) GetTitleCell() *tview.TableCell {
+	return s.titleCell
+}
+
+func (s *Section) GetTextCell() *tview.TableCell {
+	return s.textCell
 }
 
 func (s *Section) GetText() string {

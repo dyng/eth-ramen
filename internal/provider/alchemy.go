@@ -1,9 +1,5 @@
 package provider
 
-import (
-	"context"
-)
-
 type (
 	GetAssetTransfersParams struct {
 		FromBlock         string   `json:"fromBlock,omitempty"`
@@ -45,8 +41,11 @@ type (
 )
 
 func (p *Provider) GetAssetTransfers(params GetAssetTransfersParams) (*GetAssetTransfersResult, error) {
+	ctx, cancel := p.createContext()
+	defer cancel()
+
 	var result *GetAssetTransfersResult
-	err := p.rpcClient.CallContext(context.Background(), &result, "alchemy_getAssetTransfers", params)
+	err := p.rpcClient.CallContext(ctx, &result, "alchemy_getAssetTransfers", params)
 	if err != nil {
 		return nil, err
 	}

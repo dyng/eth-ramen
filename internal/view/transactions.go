@@ -6,21 +6,27 @@ import (
 	"github.com/dyng/ramen/internal/common"
 	"github.com/dyng/ramen/internal/common/conv"
 	"github.com/dyng/ramen/internal/view/format"
+	"github.com/dyng/ramen/internal/view/style"
+	"github.com/dyng/ramen/internal/view/util"
+	"github.com/ethereum/go-ethereum/log"
+	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
 type TransactionList struct {
 	*tview.Table
-	app *App
+	app    *App
+	loader *util.Loader
 
 	txns common.Transactions
 }
 
 func NewTransactionList(app *App) *TransactionList {
 	t := &TransactionList{
-		Table: tview.NewTable(),
-		app:   app,
-		txns:  []common.Transaction{},
+		Table:  tview.NewTable(),
+		app:    app,
+		loader: util.NewLoader(app.Application),
+		txns:   []common.Transaction{},
 	}
 
 	// setup layout
@@ -30,26 +36,61 @@ func NewTransactionList(app *App) *TransactionList {
 }
 
 func (t *TransactionList) initLayout() {
-	t.SetBorder(true)
-	t.SetTitle(" Transactions ")
+	s := t.app.config.Style()
 
+	t.SetBorder(true)
+	t.SetTitle(style.BoldPadding("Transactions"))
+
+	// table
 	headers := []string{"hash", "block", "from", "to", "value", "datetime"}
 	for i, header := range headers {
 		t.SetCell(0, i,
 			tview.NewTableCell(strings.ToUpper(header)).
 				SetExpansion(1).
 				SetAlign(tview.AlignLeft).
+				SetStyle(s.TableHeaderStyle).
 				SetSelectable(false))
 	}
-
 	t.SetSelectable(true, false)
 	t.SetFixed(1, 1)
 	t.SetSelectedFunc(t.handleSelected)
+
+	// loader
+	t.loader.SetTitleColor(s.PrgBarTitleColor)
+	t.loader.SetBorderColor(s.PrgBarBorderColor)
+	t.loader.SetCellColor(s.PrgBarCellColor)
 }
 
 func (t *TransactionList) SetTransactions(txns common.Transactions) {
 	t.txns = txns
 	t.refresh()
+}
+
+func (t *TransactionList) LoadAsync(loader func() (common.Transactions, error)) {
+	// clear current content
+	t.Clear()
+
+	// display loader
+	t.loader.Start()
+	t.loader.Display(true)
+
+	load := func() {
+		txns, err := loader()
+		if err != nil {
+			// TODO: notify error
+			log.Error("Failed to load transactions", "error", err)
+		}
+
+		t.app.QueueUpdateDraw(func() {
+			t.loader.Stop()
+			t.loader.Display(false)
+			if txns != nil {
+				t.SetTransactions(txns)
+			}
+		})
+	}
+
+	go load()
 }
 
 func (t *TransactionList) Clear() {
@@ -80,4 +121,16 @@ func (t *TransactionList) handleSelected(row int, column int) {
 		txn := t.txns[row-1]
 		t.app.root.ShowTransactionPage(txn)
 	}
+}
+
+// SetRect implements tview.SetRect
+func (t *TransactionList) SetRect(x, y, width, height int) {
+	t.Table.SetRect(x, y, width, height)
+	t.loader.SetRect(x, y, width, height)
+}
+
+// Draw implements tview.Draw
+func (t *TransactionList) Draw(screen tcell.Screen) {
+	t.Table.Draw(screen)
+	t.loader.Draw(screen)
 }

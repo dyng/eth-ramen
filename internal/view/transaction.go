@@ -3,6 +3,7 @@ package view
 import (
 	"github.com/dyng/ramen/internal/common"
 	"github.com/dyng/ramen/internal/view/format"
+	"github.com/dyng/ramen/internal/view/style"
 	"github.com/dyng/ramen/internal/view/util"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/gdamore/tcell/v2"
@@ -38,25 +39,29 @@ func NewTransactionDetail(app *App) *TransactionDetail {
 }
 
 func (t *TransactionDetail) initLayout() {
-	t.SetBorder(true)
-	t.SetTitle("Transaction Detail")
+	s := t.app.config.Style()
 
-	t.hash = util.NewSection("Hash", util.EmptyValue)
+	t.SetBorder(true)
+	t.SetTitle(style.BoldPadding("Transaction Detail"))
+	t.SetTitleColor(s.PrimaryTitleColor)
+	t.SetBorderColor(s.PrimaryBorderColor)
+
+	t.hash = util.NewSectionWithColor("Hash", s.SectionColor, util.EmptyValue, s.FgColor)
 	t.hash.AddToTable(t.Table, 0, 0)
 
-	t.blockNumber = util.NewSection("BlockNumber", util.EmptyValue)
+	t.blockNumber = util.NewSectionWithColor("BlockNumber", s.SectionColor, util.EmptyValue, s.FgColor)
 	t.blockNumber.AddToTable(t.Table, 1, 0)
 
-	t.timestamp = util.NewSection("Timestamp", util.EmptyValue)
+	t.timestamp = util.NewSectionWithColor("Timestamp", s.SectionColor, util.EmptyValue, s.FgColor)
 	t.timestamp.AddToTable(t.Table, 2, 0)
 
-	t.from = util.NewSection("From", util.EmptyValue)
+	t.from = util.NewSectionWithColor("From", s.SectionColor, util.EmptyValue, s.FgColor)
 	t.from.AddToTable(t.Table, 3, 0)
 
-	t.to = util.NewSection("To", util.EmptyValue)
+	t.to = util.NewSectionWithColor("To", s.SectionColor, util.EmptyValue, s.FgColor)
 	t.to.AddToTable(t.Table, 4, 0)
 
-	t.value = util.NewSection("Value", util.EmptyValue)
+	t.value = util.NewSectionWithColor("Value", s.SectionColor, util.EmptyValue, s.FgColor)
 	t.value.AddToTable(t.Table, 5, 0)
 }
 
@@ -80,7 +85,7 @@ func (t *TransactionDetail) KeyMaps() util.KeyMaps {
 	keymaps = append(keymaps, util.KeyMap{
 		Key:         util.KeyF,
 		Shortcut:    "F",
-		Description: "View Sender's Account",
+		Description: "View Sender",
 		Handler: func(*tcell.EventKey) {
 			t.viewAccount(t.from.GetText())
 		},
@@ -89,7 +94,7 @@ func (t *TransactionDetail) KeyMaps() util.KeyMaps {
 	keymaps = append(keymaps, util.KeyMap{
 		Key:         util.KeyT,
 		Shortcut:    "T",
-		Description: "View Receiver's Account",
+		Description: "View Receiver",
 		Handler: func(*tcell.EventKey) {
 			t.viewAccount(t.to.GetText())
 		},

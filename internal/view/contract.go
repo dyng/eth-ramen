@@ -5,6 +5,7 @@ import (
 
 	"github.com/dyng/ramen/internal/common/conv"
 	"github.com/dyng/ramen/internal/service"
+	"github.com/dyng/ramen/internal/view/style"
 	"github.com/dyng/ramen/internal/view/util"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/gdamore/tcell/v2"
@@ -35,10 +36,13 @@ func NewMethodCallDialog(app *App) *MethodCallDialog {
 }
 
 func (d *MethodCallDialog) initLayout() {
+	s := d.app.config.Style()
+
 	// method list
 	methods := tview.NewTable()
 	methods.SetBorder(true)
-	methods.SetTitle(" METHOD ")
+	methods.SetBorderColor(s.MethNameBorderColor)
+	methods.SetTitle(style.Padding("Method"))
 	methods.SetSelectable(true, false)
 	methods.SetSelectionChangedFunc(func(row, column int) {
 		d.showArguments()
@@ -65,7 +69,10 @@ func (d *MethodCallDialog) initLayout() {
 	// arguments form
 	args := tview.NewForm()
 	args.SetBorder(true)
-	args.SetTitle(" ARGUMENTS ")
+	args.SetBorderColor(s.MethArgsBorderColor)
+	args.SetTitle(style.Padding("Arguments"))
+	args.SetLabelColor(s.InputFieldLableColor)
+	args.SetFieldBackgroundColor(s.InputFieldBgColor)
 	args.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		key := util.AsKey(event)
 		switch key {
@@ -88,7 +95,8 @@ func (d *MethodCallDialog) initLayout() {
 	// result panel
 	result := tview.NewTextView()
 	result.SetBorder(true)
-	result.SetTitle(" RESULT ")
+	result.SetBorderColor(s.MethResultBorderColor)
+	result.SetTitle(style.Padding("Result"))
 	d.result = result
 
 	whole := tview.NewFlex().SetDirection(tview.FlexRow)
@@ -129,10 +137,11 @@ func (d *MethodCallDialog) refresh() {
 func (d *MethodCallDialog) showMethodList() {
 	d.methods.Clear()
 
+	s := d.app.config.Style()
 	row := 0
 	for name, method := range d.contract.GetABI().Methods {
 		if method.IsConstant() {
-			d.methods.SetCell(row, 0, tview.NewTableCell(name))
+			d.methods.SetCell(row, 0, tview.NewTableCell(name).SetTextColor(s.FgColor))
 			row++
 		}
 	}
@@ -198,18 +207,18 @@ func (d *MethodCallDialog) Focus(delegate func(p tview.Primitive)) {
 	delegate(d.methods)
 }
 
-// Draw implements tview.Primitive
-func (d *MethodCallDialog) Draw(screen tcell.Screen) {
-	if d.display {
-		d.Flex.Draw(screen)
-	}
-}
-
-// Draw implements tview.SetRect
+// SetRect implements tview.SetRect
 func (d *MethodCallDialog) SetRect(x int, y int, width int, height int) {
 	dialogWidth := width / 2
 	dialogHeight := height / 2
 	dialogX := x + ((width - dialogWidth) / 2)
 	dialogY := y + ((height - dialogHeight) / 2)
 	d.Flex.SetRect(dialogX, dialogY, dialogWidth, dialogHeight)
+}
+
+// Draw implements tview.Primitive
+func (d *MethodCallDialog) Draw(screen tcell.Screen) {
+	if d.display {
+		d.Flex.Draw(screen)
+	}
 }

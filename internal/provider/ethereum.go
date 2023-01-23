@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"math/big"
+	"time"
 
 	"github.com/dyng/ramen/internal/common"
 	"github.com/dyng/ramen/internal/common/conv"
@@ -25,6 +26,9 @@ const (
 	ProviderLocal string = "local"
 	// ProviderAlchemy represents blockchain provider ProviderAlchemy (https://www.alchemy.com/)
 	ProviderAlchemy = "alchemy"
+
+	// DefaultTimeout is the default value for request timeout
+	DefaultTimeout = 3000 * time.Millisecond
 )
 
 type rpcTransaction struct {
@@ -85,8 +89,11 @@ func (p *Provider) GetType() string {
 }
 
 func (p *Provider) GetNetwork() (common.BigInt, error) {
+	ctx, cancel := p.createContext()
+	defer cancel()
+
 	if p.chainId == nil {
-		chainId, err := p.client.NetworkID(context.Background())
+		chainId, err := p.client.NetworkID(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -105,23 +112,33 @@ func (p *Provider) GetSigner() (types.Signer, error) {
 }
 
 func (p *Provider) GetCode(addr common.Address) ([]byte, error) {
-	return p.client.CodeAt(context.Background(), addr, nil)
+	ctx, cancel := p.createContext()
+	defer cancel()
+	return p.client.CodeAt(ctx, addr, nil)
 }
 
 func (p *Provider) GetBalance(addr common.Address) (common.BigInt, error) {
-	return p.client.BalanceAt(context.Background(), addr, nil)
+	ctx, cancel := p.createContext()
+	defer cancel()
+	return p.client.BalanceAt(ctx, addr, nil)
 }
 
 func (p *Provider) GetBlockHeight() (uint64, error) {
-	return p.client.BlockNumber(context.Background())
+	ctx, cancel := p.createContext()
+	defer cancel()
+	return p.client.BlockNumber(ctx)
 }
 
 func (p *Provider) GetBlockByHash(hash common.Hash) (*common.Block, error) {
-	return p.client.BlockByHash(context.Background(), hash)
+	ctx, cancel := p.createContext()
+	defer cancel()
+	return p.client.BlockByHash(ctx, hash)
 }
 
 func (p *Provider) GetBlockByNumber(number common.BigInt) (*common.Block, error) {
-	return p.client.BlockByNumber(context.Background(), number)
+	ctx, cancel := p.createContext()
+	defer cancel()
+	return p.client.BlockByNumber(ctx, number)
 }
 
 func (p *Provider) BatchTransactionByHash(hashList []common.Hash) (common.Transactions, error) {
@@ -136,7 +153,10 @@ func (p *Provider) BatchTransactionByHash(hashList []common.Hash) (common.Transa
 		}
 	}
 
-	err := p.rpcClient.BatchCallContext(context.Background(), reqs)
+	ctx, cancel := p.createContext()
+	defer cancel()
+
+	err := p.rpcClient.BatchCallContext(ctx, reqs)
 	if err != nil {
 		return nil, err
 	}
@@ -163,7 +183,10 @@ func (p *Provider) CallContract(address common.Address, abi *abi.ABI, method str
 		Data: input,
 	}
 
-	data, err := p.client.CallContract(context.Background(), msg, nil)
+	ctx, cancel := p.createContext()
+	defer cancel()
+
+	data, err := p.client.CallContract(ctx, msg, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -177,5 +200,11 @@ func (p *Provider) CallContract(address common.Address, abi *abi.ABI, method str
 }
 
 func (p *Provider) SubscribeNewHead(ch chan<- *common.Header) (ethereum.Subscription, error) {
-	return p.client.SubscribeNewHead(context.Background(), ch)
+	ctx, cancel := p.createContext()
+	defer cancel()
+	return p.client.SubscribeNewHead(ctx, ch)
+}
+
+func (p *Provider) createContext() (context.Context, context.CancelFunc) {
+	return context.WithTimeout(context.Background(), DefaultTimeout)
 }

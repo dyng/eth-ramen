@@ -107,7 +107,7 @@ func (r *Root) KeyMaps() util.KeyMaps {
 	keymaps = append(keymaps, util.KeyMap{
 		Key:         util.KeySpace,
 		Shortcut:    "Space",
-		Description: "Start Query",
+		Description: "Search Account",
 		Handler: func(*tcell.EventKey) {
 			r.ShowPrompt()
 		},
@@ -130,7 +130,6 @@ func (r *Root) ShowPrompt() {
 	log.Debug("Show prompt window")
 	if !r.prompt.IsDisplay() {
 		r.prompt.Clear()
-		r.prompt.SetRect(r.GetInnerRect())
 		r.prompt.Display(true)
 	}
 	r.app.SetFocus(r.prompt)
@@ -198,6 +197,12 @@ func (r *Root) InputHandler() func(event *tcell.EventKey, setFocus func(p tview.
 			}
 		}
 	}
+}
+
+// SetRect implements tview.SetRect
+func (r *Root) SetRect(x int, y int, width int, height int) {
+	r.Flex.SetRect(x, y, width, height)
+	r.prompt.SetRect(r.GetInnerRect())
 }
 
 // Draw implements tview.Primitive

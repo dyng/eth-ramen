@@ -1,16 +1,24 @@
 package etherscan
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/dyng/ramen/internal/common"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/log"
+)
+
+const (
+	// DefaultTimeout is the default value for request timeout
+	// FIXME: code duplication
+	DefaultTimeout = 3000 * time.Millisecond
 )
 
 type EtherscanClient struct {
@@ -96,6 +104,12 @@ func (c *EtherscanClient) GetSourceCode(address common.Address) (string, *abi.AB
 }
 
 func (c *EtherscanClient) doRequest(request *http.Request) ([]byte, error) {
+	ctx, cancel := c.createContext()
+	defer cancel()
+
+	// set timeout
+	request = request.WithContext(ctx)
+
 	res, err := http.DefaultClient.Do(request)
 	if err != nil {
 		return nil, err
@@ -125,4 +139,8 @@ func (c *EtherscanClient) doRequest(request *http.Request) ([]byte, error) {
 	}
 
 	return resMsg.Result, nil
+}
+
+func (c *EtherscanClient) createContext() (context.Context, context.CancelFunc) {
+	return context.WithTimeout(context.Background(), DefaultTimeout)
 }

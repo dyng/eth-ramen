@@ -20,14 +20,8 @@ func NewHome(app *App) *Home {
 		app: app,
 	}
 
-	// Transactions
-	transactions := NewTransactionList(app)
-	home.transactionList = transactions
-
-	// Root
-	flex := tview.NewFlex()
-	flex.AddItem(transactions, 0, 1, true)
-	home.Flex = flex
+	// setup layout
+	home.initLayout()
 
 	// subscribe to new blocks
 	app.eventBus.Subscribe(service.TopicNewBlock, home.onNewBlock)
@@ -35,8 +29,23 @@ func NewHome(app *App) *Home {
 	return home
 }
 
+func (h *Home) initLayout() {
+	s := h.app.config.Style()
+
+	// Transactions
+	transactions := NewTransactionList(h.app)
+	transactions.SetBorderColor(s.PrimaryBorderColor)
+	transactions.SetTitleColor(s.PrimaryTitleColor)
+	h.transactionList = transactions
+
+	// Root
+	flex := tview.NewFlex()
+	flex.AddItem(transactions, 0, 1, true)
+	h.Flex = flex
+}
+
 // KeyMaps implements bodyPage
-func (*Home) KeyMaps() util.KeyMaps {
+func (h *Home) KeyMaps() util.KeyMaps {
 	keymaps := make(util.KeyMaps, 0)
 	return keymaps
 }

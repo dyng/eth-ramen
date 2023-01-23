@@ -1,6 +1,7 @@
 package view
 
 import (
+	"github.com/dyng/ramen/internal/view/style"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -26,11 +27,17 @@ func NewPromptDialog(app *App) *PromptDialog {
 }
 
 func (d *PromptDialog) initLayout() {
+	s := d.app.config.Style()
+
 	input := tview.NewInputField()
 	input.SetFieldWidth(80)
 	input.SetBorder(true)
-	input.SetTitle(" QUERY ")
+	input.SetBorderColor(s.PromptBorderColor)
+	input.SetTitle(style.Padding("Address"))
+	input.SetTitleColor(s.FgColor)
 	input.SetLabel("> ")
+	input.SetLabelColor(s.InputFieldLableColor)
+	input.SetFieldBackgroundColor(s.PromptBgColor)
 	input.SetDoneFunc(d.handleKey)
 	d.InputField = input
 }
@@ -73,7 +80,7 @@ func (d *PromptDialog) Draw(screen tcell.Screen) {
 	}
 }
 
-// Draw implements tview.SetRect
+// SetRect implements tview.SetRect
 func (d *PromptDialog) SetRect(x int, y int, width int, height int) {
 	inputWidth, inputHeight := d.inputSize()
 	if inputWidth > width-2 {

@@ -3,6 +3,7 @@ package view
 import (
 	"github.com/dyng/ramen/internal/common/conv"
 	serv "github.com/dyng/ramen/internal/service"
+	"github.com/dyng/ramen/internal/view/style"
 	"github.com/dyng/ramen/internal/view/util"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/gdamore/tcell/v2"
@@ -60,12 +61,14 @@ func (a *Account) SetAccount(account *serv.Account) {
 }
 
 func (a *Account) initLayout() {
+	s := a.app.config.Style()
+
 	// AccountInfo
 	accountInfo := &AccountInfo{
 		Table:       tview.NewTable(),
-		address:     util.NewSection("Address", util.NAValue),
-		accountType: util.NewSection("Type", util.NAValue),
-		balance:     util.NewSection("Balance", util.NAValue),
+		address:     util.NewSectionWithColor("Address", s.SectionColor, util.NAValue, s.FgColor),
+		accountType: util.NewSectionWithColor("Type", s.SectionColor, util.NAValue, s.FgColor),
+		balance:     util.NewSectionWithColor("Balance", s.SectionColor, util.NAValue, s.FgColor),
 	}
 	accountInfo.address.AddToTable(accountInfo.Table, 0, 0)
 	accountInfo.accountType.AddToTable(accountInfo.Table, 0, 2)
@@ -78,15 +81,19 @@ func (a *Account) initLayout() {
 
 	// Transactions
 	transactions := NewTransactionList(a.app)
+	transactions.SetTitleColor(s.SecondaryTitleColor)
+	transactions.SetBorderColor(s.SecondaryBorderColor)
 	a.transactionList = transactions
 
 	// Root
 	flex := tview.NewFlex()
 	flex.SetBorder(true)
-	flex.SetTitle("[::b] Account [::-]")
+	flex.SetTitle(style.BoldPadding("Account"))
+	flex.SetBorderColor(s.PrimaryBorderColor)
+	flex.SetTitleColor(s.PrimaryTitleColor)
 	flex.SetDirection(tview.FlexRow)
-	flex.AddItem(accountInfo, 0, 1, false)
-	flex.AddItem(transactions, 0, 1, true)
+	flex.AddItem(accountInfo, 0, 3, false)
+	flex.AddItem(transactions, 0, 7, true)
 	a.Flex = flex
 }
 
@@ -120,7 +127,7 @@ func (a *Account) KeyMaps() util.KeyMaps {
 }
 
 func (a *Account) ShowMethodCallDialog() {
-	log.Debug("Show method call dialog")
+	log.Debug("Show methodCall dialog")
 
 	if !a.account.IsContract() {
 		return
@@ -128,7 +135,6 @@ func (a *Account) ShowMethodCallDialog() {
 
 	if !a.methodCall.IsDisplay() {
 		a.methodCall.Clear()
-		a.methodCall.SetRect(a.GetInnerRect())
 		a.methodCall.Display(true)
 	}
 
@@ -136,7 +142,7 @@ func (a *Account) ShowMethodCallDialog() {
 }
 
 func (a *Account) HideMethodCallDialog() {
-	log.Debug("Hide method call dialog")
+	log.Debug("Hide methodCall dialog")
 
 	if a.methodCall.IsDisplay() {
 		a.methodCall.Display(false)
@@ -157,12 +163,8 @@ func (a *Account) refresh() {
 		log.Error("Failed to fetch account balance", "account", addr, "error", err)
 	}
 
-	txns, err := a.account.GetTransactions()
-	if err == nil {
-		a.transactionList.SetTransactions(txns)
-	} else {
-		log.Error("Failed to fetch account transactions", "account", addr, "error", err)
-	}
+	// update transaction history asynchronously
+	a.transactionList.LoadAsync(a.account.GetTransactions)
 }
 
 // Primitive Interface Implementation
@@ -191,6 +193,12 @@ func (a *Account) InputHandler() func(event *tcell.EventKey, setFocus func(p tvi
 			}
 		}
 	}
+}
+
+// SetRect implements tview.SetRect
+func (a *Account) SetRect(x int, y int, width int, height int) {
+	a.Flex.SetRect(x, y, width, height)
+	a.methodCall.SetRect(a.GetInnerRect())
 }
 
 // Draw implements tview.Primitive

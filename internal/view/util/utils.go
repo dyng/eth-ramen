@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	NAValue = "n/a"
+	NAValue = "[dimgray]n/a[-]"
 
 	EmptyValue = ""
 )

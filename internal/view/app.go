@@ -70,13 +70,8 @@ func (a *App) firstSync() error {
 		a.root.chainInfo.SetHeight(height)
 	}
 
-	// display latest transactions
-	txns, err := a.service.GetLatestTransactions()
-	if err != nil {
-		log.Error("Failed to fetch latest transactions", "error", err)
-	} else {
-		a.root.home.transactionList.SetTransactions(txns)
-	}
+	// show latest transactions
+	a.root.home.transactionList.LoadAsync(a.service.GetLatestTransactions)
 
 	// start syncer
 	if err := a.syncer.Start(); err != nil {

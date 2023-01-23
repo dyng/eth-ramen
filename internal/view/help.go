@@ -44,6 +44,7 @@ func (h *Help) refresh() {
 	// clear previous content at first
 	h.Clear()
 
+	s := h.app.config.Style()
 	row, col := 0, 0
 	for _, keymap := range h.keymaps {
 		if row >= style.HeaderHeight {
@@ -53,7 +54,7 @@ func (h *Help) refresh() {
 
 		short := fmt.Sprintf("<%s>", keymap.Shortcut)
 		desc := keymap.Description
-		sec := util.NewSection(short, desc)
+		sec := util.NewSectionWithColor(short, s.HelpKeyColor, desc, s.FgColor)
 		sec.AddToTable(h.Table, row, col)
 
 		row += 1
