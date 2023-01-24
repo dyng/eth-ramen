@@ -108,10 +108,10 @@ func (r *Root) initKeymap() {
 func (r *Root) KeyMaps() util.KeyMaps {
 	keymaps := make(util.KeyMaps, 0)
 
-	// KeySpace: show a query dialog
+	// KeySlash: show a query dialog
 	keymaps = append(keymaps, util.KeyMap{
-		Key:         util.KeySpace,
-		Shortcut:    "Space",
+		Key:         util.KeySlash,
+		Shortcut:    "/",
 		Description: "Search Account",
 		Handler: func(*tcell.EventKey) {
 			r.ShowQueryDialog()

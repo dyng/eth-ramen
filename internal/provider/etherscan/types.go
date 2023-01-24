@@ -120,3 +120,10 @@ type contractJSON struct {
 	ABI          string `json:"ABI"`
 	ContractName string `json:"ContractName"`
 }
+
+type ethpriceJSON struct {
+	EthBtc          string `json:"ethbtc"`
+	EthBtcTimestamp string `json:"ethbtc_timestamp"`
+	EthUsd          string `json:"ethusd"`
+	EthUsdTimestamp string `json:"ethusd_timestamp"`
+}

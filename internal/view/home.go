@@ -57,6 +57,6 @@ func (h *Home) onNewBlock(block *common.Block) {
 			log.Error("cannot extract transactions from block", "blockHash", block.Hash(), "error", err)
 			return
 		}
-		h.transactionList.SetTransactions(txns)
+		h.transactionList.PrependTransactions(txns)
 	})
 }

@@ -13,6 +13,7 @@ import (
 	"github.com/dyng/ramen/internal/common"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/log"
+	"github.com/shopspring/decimal"
 )
 
 const (
@@ -101,6 +102,37 @@ func (c *EtherscanClient) GetSourceCode(address common.Address) (string, *abi.AB
 	}
 
 	return code.SourceCode, &parsedAbi, nil
+}
+
+func (c *EtherscanClient) EthPrice() (*decimal.Decimal, error) {
+	req, err := http.NewRequest(http.MethodGet, c.endpoint, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	// build request
+	q := req.URL.Query()
+	q.Add("apikey", c.apiKey)
+	q.Add("module", "stats")
+	q.Add("action", "ethprice")
+	req.URL.RawQuery = q.Encode()
+
+	result, err := c.doRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	var ethprice ethpriceJSON
+	if err = json.Unmarshal(result, &ethprice); err != nil {
+		return nil, err
+	}
+
+	price, err := decimal.NewFromString(ethprice.EthUsd)
+	if err != nil {
+		return nil, err
+	}
+
+	return &price, nil
 }
 
 func (c *EtherscanClient) doRequest(request *http.Request) ([]byte, error) {

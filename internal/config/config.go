@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/dyng/ramen/internal/view/style"
 )
@@ -36,16 +37,11 @@ func (c *Config) Endpoint() string {
 	apiKey := c.ApiKey
 
 	// config network
-	network := c.Network
-	if network == "homestead" {
-		network = "mainnet"
-	}
-
 	switch c.Provider {
 	case "local":
 		return "ws://localhost:8545"
 	case "alchemy":
-		return fmt.Sprintf("wss://eth-%s.alchemyapi.io/v2/%s", network, apiKey)
+		return fmt.Sprintf("wss://eth-%s.alchemyapi.io/v2/%s", strings.ToLower(c.Network), apiKey)
 	default:
 		return ""
 	}
@@ -55,7 +51,7 @@ func (c *Config) EtherscanEndpoint() string {
 	if c.Network == "mainnet" {
 		return fmt.Sprintf("https://api.etherscan.io/api")
 	} else {
-		return fmt.Sprintf("https://api-%s.etherscan.io/api", c.Network)
+		return fmt.Sprintf("https://api-%s.etherscan.io/api", strings.ToLower(c.Network))
 	}
 }
 

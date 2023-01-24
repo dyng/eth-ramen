@@ -13,6 +13,11 @@ import (
 	"github.com/rivo/tview"
 )
 
+const (
+	// TransactionListLimit is the length limit of transaction list
+	TransactionListLimit = 1000
+)
+
 type TransactionList struct {
 	*tview.Table
 	app    *App
@@ -73,7 +78,15 @@ func (t *TransactionList) SetBaseAccount(account *common.Address) {
 	t.base = account
 }
 
+func (t *TransactionList) PrependTransactions(txns common.Transactions) {
+	prepended := append(txns, t.txns...)
+	t.SetTransactions(prepended)
+}
+
 func (t *TransactionList) SetTransactions(txns common.Transactions) {
+	if len(txns) > TransactionListLimit {
+		txns = txns[:TransactionListLimit]
+	}
 	t.txns = txns
 	t.refresh()
 }

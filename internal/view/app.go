@@ -29,7 +29,7 @@ func NewApp(config *conf.Config) *App {
 	}
 
 	// syncer
-	syncer := serv.NewSyncer(app.service.GetProvider(), app.eventBus)
+	syncer := serv.NewSyncer(app.service, app.eventBus)
 	app.syncer = syncer
 
 	// root

@@ -12,11 +12,7 @@ import (
 	"github.com/dyng/ramen/internal/provider/etherscan"
 	gcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/log"
-)
-
-const (
-	// TopicNewBlock is the topic about received new blocks
-	TopicNewBlock = "service:newBlock"
+	"github.com/shopspring/decimal"
 )
 
 //go:embed data/chains.json
@@ -86,6 +82,14 @@ func (s *Service) GetNetwork() Network {
 
 func (s *Service) GetBlockHeight() (uint64, error) {
 	return s.provider.GetBlockHeight()
+}
+
+func (s *Service) GetGasPrice() (common.BigInt, error) {
+	return s.provider.GetGasPrice()
+}
+
+func (s *Service) GetEthPrice() (*decimal.Decimal, error) {
+	return s.esclient.EthPrice()
 }
 
 func (s *Service) GetAccount(address string) (*Account, error) {

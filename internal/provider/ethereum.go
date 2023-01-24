@@ -103,6 +103,12 @@ func (p *Provider) GetNetwork() (common.BigInt, error) {
 	return p.chainId, nil
 }
 
+func (p *Provider) GetGasPrice() (common.BigInt, error) {
+	ctx, cancel := p.createContext()
+	defer cancel()
+	return p.client.SuggestGasPrice(ctx)
+}
+
 func (p *Provider) GetSigner() (types.Signer, error) {
 	_, err := p.GetNetwork()
 	if err != nil {

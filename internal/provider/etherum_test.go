@@ -56,3 +56,15 @@ func TestCallContract_NoError(t *testing.T) {
 	balance := result[0].(common.BigInt)
 	assert.Equal(t, 1, balance.Cmp(big.NewInt(100)), "balance should be greater than 100")
 }
+
+func TestGetGasPrice_NoError(t *testing.T) {
+	// prepare
+	provider := NewProvider(testAlchemyEndpoint, ProviderAlchemy)
+
+	// process
+	result, err := provider.GetGasPrice()
+
+	// verify
+	assert.NoError(t, err)
+	assert.Equal(t, 1, result.Cmp(big.NewInt(100)), "gas price should be greater than 100")
+}
