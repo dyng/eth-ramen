@@ -1,87 +1,88 @@
 package view
 
 import (
+	"github.com/dyng/ramen/internal/view/format"
 	"github.com/dyng/ramen/internal/view/style"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
-type PromptDialog struct {
+type QueryDialog struct {
 	*tview.InputField
-	display bool
-
 	app *App
+	display bool
 }
 
-func NewPromptDialog(app *App) *PromptDialog {
-	prompt := &PromptDialog{
+func NewQueryDialog(app *App) *QueryDialog {
+	query := &QueryDialog{
 		display:    false,
 		app:        app,
 	}
 
 	// setup layout
-	prompt.initLayout()
+	query.initLayout()
 
-	return prompt
+	return query
 }
 
-func (d *PromptDialog) initLayout() {
+func (d *QueryDialog) initLayout() {
 	s := d.app.config.Style()
 
 	input := tview.NewInputField()
 	input.SetFieldWidth(80)
 	input.SetBorder(true)
-	input.SetBorderColor(s.PromptBorderColor)
+	input.SetBorderColor(s.QueryBorderColor)
 	input.SetTitle(style.Padding("Address"))
 	input.SetTitleColor(s.FgColor)
 	input.SetLabel("> ")
 	input.SetLabelColor(s.InputFieldLableColor)
-	input.SetFieldBackgroundColor(s.PromptBgColor)
+	input.SetFieldBackgroundColor(s.QueryBgColor)
 	input.SetDoneFunc(d.handleKey)
 	d.InputField = input
 }
 
-func (d *PromptDialog) handleKey(key tcell.Key) {
+func (d *QueryDialog) handleKey(key tcell.Key) {
 	switch key {
 	case tcell.KeyEnter:
 		address := d.GetText()
 		if address != "" {
 			account, err := d.app.service.GetAccount(address)
 			if err != nil {
-				// TODO: notify error
 				log.Error("Failed to fetch account of given address", "address", address, "error", err)
+				d.app.root.NotifyError(format.FineErrorMessage(
+					"Failed to fetch account of address %s", address, err))
 			} else {
-				d.app.root.HidePrompt()
+				d.app.root.HideQueryDialog()
 				d.app.root.ShowAccountPage(account)
 			}
 		}
 	case tcell.KeyEsc:
-		d.app.root.HidePrompt()
+		d.app.root.HideQueryDialog()
 	}
 }
 
-func (d *PromptDialog) Clear() {
+func (d *QueryDialog) Clear() {
 	d.InputField.SetText("")
 }
 
-func (d *PromptDialog) Display(display bool) {
+func (d *QueryDialog) Display(display bool) {
 	d.display = display
 }
 
-func (d *PromptDialog) IsDisplay() bool {
+func (d *QueryDialog) IsDisplay() bool {
 	return d.display
 }
 
 // Draw implements tview.Primitive
-func (d *PromptDialog) Draw(screen tcell.Screen) {
+func (d *QueryDialog) Draw(screen tcell.Screen) {
 	if d.display {
 		d.InputField.Draw(screen)
 	}
 }
 
 // SetRect implements tview.SetRect
-func (d *PromptDialog) SetRect(x int, y int, width int, height int) {
+func (d *QueryDialog) SetRect(x int, y int, width int, height int) {
 	inputWidth, inputHeight := d.inputSize()
 	if inputWidth > width-2 {
 		inputWidth = width - 2
@@ -94,7 +95,7 @@ func (d *PromptDialog) SetRect(x int, y int, width int, height int) {
 	d.InputField.SetRect(x+ws, y+hs, inputWidth, inputHeight)
 }
 
-func (d *PromptDialog) inputSize() (int, int) {
+func (d *QueryDialog) inputSize() (int, int) {
 	width := len(d.GetLabel()) + d.GetFieldWidth()
 	height := d.GetFieldHeight() + 2
 	return width, height

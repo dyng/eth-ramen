@@ -3,6 +3,7 @@ package view
 import (
 	"github.com/dyng/ramen/internal/common/conv"
 	serv "github.com/dyng/ramen/internal/service"
+	"github.com/dyng/ramen/internal/view/format"
 	"github.com/dyng/ramen/internal/view/style"
 	"github.com/dyng/ramen/internal/view/util"
 	"github.com/ethereum/go-ethereum/log"
@@ -51,8 +52,8 @@ func (a *Account) SetAccount(account *serv.Account) {
 		if err == nil {
 			a.methodCall.SetContract(contract)
 		} else {
-			// TODO: notify error
-			log.Error("Failed to upgrade account to contract", "account", account.GetAddress(), "error", err)
+			log.Error("Cannot upgrade account to contract", "account", account.GetAddress(), "error", err)
+			a.app.root.NotifyError(format.FineErrorMessage("Cannot upgrade account to contract", err))
 		}
 	}
 

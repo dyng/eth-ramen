@@ -26,9 +26,9 @@ type Style struct {
 	SecondaryTitleColor  tcell.Color
 	SecondaryBorderColor tcell.Color
 
-	// prompt
-	PromptBgColor tcell.Color
-	PromptBorderColor tcell.Color
+	// query
+	QueryBgColor tcell.Color
+	QueryBorderColor tcell.Color
 
 	// methodCall
 	MethNameBorderColor tcell.Color

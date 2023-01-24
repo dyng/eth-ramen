@@ -88,16 +88,16 @@ func (t *TransactionList) LoadAsync(loader func() (common.Transactions, error)) 
 
 	load := func() {
 		txns, err := loader()
-		if err != nil {
-			// TODO: notify error
-			log.Error("Failed to load transactions", "error", err)
-		}
-
 		t.app.QueueUpdateDraw(func() {
-			t.loader.Stop()
-			t.loader.Display(false)
-			if txns != nil {
-				t.SetTransactions(txns)
+			if err == nil {
+				t.loader.Stop()
+				t.loader.Display(false)
+				if txns != nil {
+					t.SetTransactions(txns)
+				}
+			} else {
+				log.Error("Failed to load transactions", "error", err)
+				t.app.root.NotifyError(format.FineErrorMessage("Error occurs when loading transactions.", err))
 			}
 		})
 	}

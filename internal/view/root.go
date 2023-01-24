@@ -18,13 +18,14 @@ type Root struct {
 	*tview.Flex
 	app *App
 
-	chainInfo *ChainInfo
-	help      *Help
-	prompt    *PromptDialog
-	body      *tview.Pages
-	home      *Home
-	account   *Account
-	transaction *TransactionDetail
+	chainInfo    *ChainInfo
+	help         *Help
+	query        *QueryDialog
+	notification *Notification
+	body         *tview.Pages
+	home         *Home
+	account      *Account
+	transaction  *TransactionDetail
 }
 
 func NewRoot(app *App) *Root {
@@ -35,7 +36,7 @@ func NewRoot(app *App) *Root {
 	// setup layout
 	root.initLayout()
 
-	// setup keys
+	// setup keymap
 	root.initKeymap()
 
 	return root
@@ -75,9 +76,13 @@ func (r *Root) initLayout() {
 	body.AddPage("transaction", transaction, true, false)
 	r.transaction = transaction
 
-	// prompt dialog
-	prompt := NewPromptDialog(r.app)
-	r.prompt = prompt
+	// query dialog
+	query := NewQueryDialog(r.app)
+	r.query = query
+
+	// notiication bar
+	notification := NewNotification(r.app)
+	r.notification = notification
 
 	// root
 	flex := tview.NewFlex().
@@ -103,13 +108,13 @@ func (r *Root) initKeymap() {
 func (r *Root) KeyMaps() util.KeyMaps {
 	keymaps := make(util.KeyMaps, 0)
 
-	// KeySpace: show a prompt dialog
+	// KeySpace: show a query dialog
 	keymaps = append(keymaps, util.KeyMap{
 		Key:         util.KeySpace,
 		Shortcut:    "Space",
 		Description: "Search Account",
 		Handler: func(*tcell.EventKey) {
-			r.ShowPrompt()
+			r.ShowQueryDialog()
 		},
 	})
 
@@ -126,19 +131,40 @@ func (r *Root) KeyMaps() util.KeyMaps {
 	return keymaps
 }
 
-func (r *Root) ShowPrompt() {
-	log.Debug("Show prompt window")
-	if !r.prompt.IsDisplay() {
-		r.prompt.Clear()
-		r.prompt.Display(true)
+func (r *Root) ShowQueryDialog() {
+	log.Debug("Show query dialog")
+	if !r.query.IsDisplay() {
+		r.query.Clear()
+		r.query.Display(true)
 	}
-	r.app.SetFocus(r.prompt)
+	r.app.SetFocus(r.query)
 }
 
-func (r *Root) HidePrompt() {
-	log.Debug("Hide prompt window")
-	if r.prompt.IsDisplay() {
-		r.prompt.Display(false)
+func (r *Root) HideQueryDialog() {
+	log.Debug("Hide query dialog")
+	if r.query.IsDisplay() {
+		r.query.Display(false)
+	}
+	r.app.SetFocus(r)
+}
+
+func (r *Root) NotifyError(errmsg string) {
+	r.ShowNotification("[crimson::b]ERROR[-::-]", errmsg)
+}
+
+func (r *Root) ShowNotification(title string, text string) {
+	log.Debug("Show notification")
+	if !r.notification.IsDisplay() {
+		r.notification.SetContent(title, text)
+		r.notification.Display(true)
+	}
+	r.app.SetFocus(r.notification)
+}
+
+func (r *Root) HideNotification() {
+	log.Debug("Hide notification")
+	if r.notification.IsDisplay() {
+		r.notification.Display(false)
 	}
 	r.app.SetFocus(r)
 }
@@ -175,7 +201,10 @@ func (r *Root) updateHelp(page bodyPage) {
 
 // HasFocus implements tview.Primitive
 func (r *Root) HasFocus() bool {
-	if r.prompt.HasFocus() {
+	if r.query.HasFocus() {
+		return true
+	}
+	if r.notification.HasFocus() {
 		return true
 	}
 	return r.Flex.HasFocus()
@@ -190,8 +219,14 @@ func (r *Root) InputHandler() func(event *tcell.EventKey, setFocus func(p tview.
 				return
 			}
 		}
-		if r.prompt.HasFocus() {
-			if handler := r.prompt.InputHandler(); handler != nil {
+		if r.query.HasFocus() {
+			if handler := r.query.InputHandler(); handler != nil {
+				handler(event, setFocus)
+				return
+			}
+		}
+		if r.notification.HasFocus() {
+			if handler := r.notification.InputHandler(); handler != nil {
 				handler(event, setFocus)
 				return
 			}
@@ -202,11 +237,13 @@ func (r *Root) InputHandler() func(event *tcell.EventKey, setFocus func(p tview.
 // SetRect implements tview.SetRect
 func (r *Root) SetRect(x int, y int, width int, height int) {
 	r.Flex.SetRect(x, y, width, height)
-	r.prompt.SetRect(r.GetInnerRect())
+	r.query.SetRect(r.GetInnerRect())
+	r.notification.SetRect(r.GetInnerRect())
 }
 
 // Draw implements tview.Primitive
 func (r *Root) Draw(screen tcell.Screen) {
 	r.Flex.Draw(screen)
-	r.prompt.Draw(screen)
+	r.query.Draw(screen)
+	r.notification.Draw(screen)
 }

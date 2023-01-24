@@ -121,8 +121,9 @@ func (t *TransactionDetail) refresh() {
 func (t *TransactionDetail) viewAccount(address string) {
 	account, err := t.app.service.GetAccount(address)
 	if err != nil {
-		// TODO: notify error
 		log.Error("Failed to fetch account of given address", "address", address, "error", err)
+		t.app.root.NotifyError(format.FineErrorMessage(
+			"Failed to fetch account of address %s", address, err))
 	} else {
 		t.app.root.ShowAccountPage(account)
 	}

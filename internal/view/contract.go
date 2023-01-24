@@ -5,6 +5,7 @@ import (
 
 	"github.com/dyng/ramen/internal/common/conv"
 	"github.com/dyng/ramen/internal/service"
+	"github.com/dyng/ramen/internal/view/format"
 	"github.com/dyng/ramen/internal/view/style"
 	"github.com/dyng/ramen/internal/view/util"
 	"github.com/ethereum/go-ethereum/log"
@@ -179,16 +180,17 @@ func (d *MethodCallDialog) callMethod() {
 		if err == nil {
 			args = append(args, val)
 		} else {
-			// TODO: notify error
 			log.Error("Cannot unpack argument", "argument", arg, "input", item.GetText(), "error", err)
+			d.app.root.NotifyError(format.FineErrorMessage(
+				"Input type for argument '%s' is incorrect, should be '%s'.", arg.Name, arg.Type.String(), err))
 			return
 		}
 	}
 
 	res, err := d.contract.Call(methodName, args...)
 	if err != nil {
-		// TODO: notify error
-		log.Error("Method call is failed", "error", err)
+		log.Error("Method call is failed", "name", methodName, "args", args, "error", err)
+		d.app.root.NotifyError(format.FineErrorMessage("Cannot call contract method '%s'.", methodName, err))
 	} else {
 		d.result.SetText(fmt.Sprint(res...))
 	}
