@@ -18,9 +18,11 @@ type MethodCallDialog struct {
 	app     *App
 	display bool
 
-	methods *tview.Table
-	args    *tview.Form
-	result  *tview.TextView
+	methods  *tview.Table
+	args     *tview.Form
+	result   *tview.TextView
+	focusIdx int
+	spinner  *util.Spinner
 
 	contract *service.Contract
 }
@@ -28,6 +30,7 @@ type MethodCallDialog struct {
 func NewMethodCallDialog(app *App) *MethodCallDialog {
 	mcd := &MethodCallDialog{
 		app: app,
+		spinner: util.NewSpinner(app.Application),
 	}
 
 	// setup layout
@@ -52,14 +55,14 @@ func (d *MethodCallDialog) initLayout() {
 		if d.methodHasNoArgs() {
 			d.callMethod()
 		} else {
-			d.app.SetFocus(d.args)
+			d.focusNext()
 		}
 	})
 	methods.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		key := util.AsKey(event)
 		switch key {
 		case tcell.KeyTAB:
-			d.app.SetFocus(d.args)
+			d.focusNext()
 			return nil
 		default:
 			return event
@@ -78,10 +81,14 @@ func (d *MethodCallDialog) initLayout() {
 		key := util.AsKey(event)
 		switch key {
 		case tcell.KeyEnter:
-			d.callMethod()
+			if d.atLastFormItem() {
+				d.callMethod()
+			} else {
+				d.focusNext()
+			}
 			return nil
 		case tcell.KeyTAB:
-			d.app.SetFocus(d.methods)
+			d.focusNext()
 			return nil
 		default:
 			return event
@@ -114,10 +121,6 @@ func (d *MethodCallDialog) initLayout() {
 	})
 
 	d.Flex = whole
-}
-
-func (d *MethodCallDialog) initKeymap() {
-
 }
 
 func (d *MethodCallDialog) SetContract(contract *service.Contract) {
@@ -162,6 +165,26 @@ func (d *MethodCallDialog) showArguments() {
 	}
 }
 
+func (d *MethodCallDialog) focusNext() {
+	next := d.focusIdx + 1
+	if next > d.args.GetFormItemCount() {
+		next = 0
+	}
+
+	if next == 0 {
+		d.app.SetFocus(d.methods)
+	} else {
+		formItem := d.args.GetFormItem(next - 1)
+		d.app.SetFocus(formItem)
+	}
+
+	d.focusIdx = next
+}
+
+func (d *MethodCallDialog) atLastFormItem() bool {
+	return d.focusIdx >= d.args.GetFormItemCount()
+}
+
 func (d *MethodCallDialog) methodHasNoArgs() bool {
 	methodName := d.methods.GetCell(d.methods.GetSelection()).Text
 	method := d.contract.GetABI().Methods[methodName]
@@ -187,13 +210,34 @@ func (d *MethodCallDialog) callMethod() {
 		}
 	}
 
-	res, err := d.contract.Call(methodName, args...)
-	if err != nil {
-		log.Error("Method call is failed", "name", methodName, "args", args, "error", err)
-		d.app.root.NotifyError(format.FineErrorMessage("Cannot call contract method '%s'.", methodName, err))
-	} else {
-		d.result.SetText(fmt.Sprint(res...))
+	// start calling...
+	d.showSpinner()
+
+	call := func() {
+		res, err := d.contract.Call(methodName, args...)
+		d.app.QueueUpdateDraw(func() {
+			if err != nil {
+				log.Error("Method call is failed", "name", methodName, "args", args, "error", err)
+				d.app.root.NotifyError(format.FineErrorMessage("Cannot call contract method '%s'.", methodName, err))
+			} else {
+				d.result.SetText(fmt.Sprint(res...))
+			}
+
+			// finished
+			d.hideSpinner()
+		})
 	}
+	go call()
+}
+
+func (d *MethodCallDialog) showSpinner() {
+	d.spinner.Start()
+	d.spinner.Display(true)
+}
+
+func (d *MethodCallDialog) hideSpinner() {
+	d.spinner.Stop()
+	d.spinner.Display(false)
 }
 
 func (d *MethodCallDialog) Display(display bool) {
@@ -211,16 +255,24 @@ func (d *MethodCallDialog) Focus(delegate func(p tview.Primitive)) {
 
 // SetRect implements tview.SetRect
 func (d *MethodCallDialog) SetRect(x int, y int, width int, height int) {
+	// self
 	dialogWidth := width / 2
 	dialogHeight := height / 2
 	dialogX := x + ((width - dialogWidth) / 2)
 	dialogY := y + ((height - dialogHeight) / 2)
 	d.Flex.SetRect(dialogX, dialogY, dialogWidth, dialogHeight)
+
+	// spinner
+	d.spinner.SetRect(d.result.GetInnerRect())
 }
 
 // Draw implements tview.Primitive
 func (d *MethodCallDialog) Draw(screen tcell.Screen) {
+	// self
 	if d.display {
 		d.Flex.Draw(screen)
 	}
+
+	// spinner
+	d.spinner.Draw(screen)
 }
