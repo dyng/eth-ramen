@@ -80,7 +80,7 @@ func (a *Account) initLayout() {
 	a.methodCall = methodCall
 
 	// Transactions
-	transactions := NewTransactionList(a.app)
+	transactions := NewTransactionList(a.app, true)
 	transactions.SetTitleColor(s.SecondaryTitleColor)
 	transactions.SetBorderColor(s.SecondaryBorderColor)
 	a.transactionList = transactions
@@ -154,14 +154,19 @@ func (a *Account) HideMethodCallDialog() {
 func (a *Account) refresh() {
 	addr := a.account.GetAddress()
 	a.accountInfo.address.SetText(addr.Hex())
-	a.accountInfo.accountType.SetText(a.account.GetType().String())
+	a.accountInfo.accountType.SetText(StyledAccountType(a.account.GetType()))
 
+	// fetch balance
 	bal, err := a.account.GetBalance()
 	if err == nil {
 		a.accountInfo.balance.SetText(conv.ToEther(bal).String())
 	} else {
 		log.Error("Failed to fetch account balance", "account", addr, "error", err)
 	}
+
+	// set base account
+	base := a.account.GetAddress()
+	a.transactionList.SetBaseAccount(&base)
 
 	// update transaction history asynchronously
 	a.transactionList.LoadAsync(a.account.GetTransactions)

@@ -18,15 +18,18 @@ type TransactionList struct {
 	app    *App
 	loader *util.Loader
 
-	txns common.Transactions
+	showInOut bool
+	base      *common.Address
+	txns      common.Transactions
 }
 
-func NewTransactionList(app *App) *TransactionList {
+func NewTransactionList(app *App, showInOut bool) *TransactionList {
 	t := &TransactionList{
-		Table:  tview.NewTable(),
-		app:    app,
-		loader: util.NewLoader(app.Application),
-		txns:   []common.Transaction{},
+		Table:     tview.NewTable(),
+		app:       app,
+		loader:    util.NewLoader(app.Application),
+		showInOut: showInOut,
+		txns:      []common.Transaction{},
 	}
 
 	// setup layout
@@ -42,7 +45,12 @@ func (t *TransactionList) initLayout() {
 	t.SetTitle(style.BoldPadding("Transactions"))
 
 	// table
-	headers := []string{"hash", "block", "from", "to", "value", "datetime"}
+	var headers []string
+	if  t.showInOut {
+		headers = []string{"hash", "block", "from", "to", "", "value", "datetime"}
+	} else {
+		headers = []string{"hash", "block", "from", "to", "value", "datetime"}
+	}
 	for i, header := range headers {
 		t.SetCell(0, i,
 			tview.NewTableCell(strings.ToUpper(header)).
@@ -59,6 +67,10 @@ func (t *TransactionList) initLayout() {
 	t.loader.SetTitleColor(s.PrgBarTitleColor)
 	t.loader.SetBorderColor(s.PrgBarBorderColor)
 	t.loader.SetCellColor(s.PrgBarCellColor)
+}
+
+func (t *TransactionList) SetBaseAccount(account *common.Address) {
+	t.base = account
 }
 
 func (t *TransactionList) SetTransactions(txns common.Transactions) {
@@ -106,13 +118,18 @@ func (t *TransactionList) refresh() {
 	for i := 0; i < len(t.txns); i++ {
 		tx := t.txns[i]
 		row := i + 1
-		t.SetCell(row, 0, tview.NewTableCell(format.TruncateText(tx.Hash().Hex(), 8)))
-		t.SetCell(row, 1, tview.NewTableCell(tx.BlockNumber().String()))
-		t.SetCell(row, 2, tview.NewTableCell(format.TruncateText(tx.From().Hex(), 20)))
-		t.SetCell(row, 3, tview.NewTableCell(format.TruncateText(
+
+		j := 0
+		t.SetCell(row, Inc(&j), tview.NewTableCell(format.TruncateText(tx.Hash().Hex(), 8)))
+		t.SetCell(row, Inc(&j), tview.NewTableCell(tx.BlockNumber().String()))
+		t.SetCell(row, Inc(&j), tview.NewTableCell(format.TruncateText(tx.From().Hex(), 20)))
+		t.SetCell(row, Inc(&j), tview.NewTableCell(format.TruncateText(
 			format.NormalizeReceiverAddress(tx.To()), 20)))
-		t.SetCell(row, 4, tview.NewTableCell(conv.ToEther(tx.Value()).String()))
-		t.SetCell(row, 5, tview.NewTableCell(format.ToDatetime(tx.Timestamp())))
+		if t.showInOut {
+			t.SetCell(row, Inc(&j), tview.NewTableCell(StyledTxnDirection(t.base, tx)))
+		}
+		t.SetCell(row, Inc(&j), tview.NewTableCell(conv.ToEther(tx.Value()).String()))
+		t.SetCell(row, Inc(&j), tview.NewTableCell(format.ToDatetime(tx.Timestamp())))
 	}
 }
 

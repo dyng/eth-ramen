@@ -1,7 +1,10 @@
 package service
 
 import (
+	"embed"
+	"encoding/json"
 	"fmt"
+	"math/big"
 
 	"github.com/dyng/ramen/internal/common"
 	conf "github.com/dyng/ramen/internal/config"
@@ -15,6 +18,37 @@ const (
 	// TopicNewBlock is the topic about received new blocks
 	TopicNewBlock = "service:newBlock"
 )
+
+//go:embed data/chains.json
+var chainFile embed.FS
+
+var chainMap map[string]Network
+
+type Network struct {
+	Name    string `json:"name"`
+	Title   string `json:"title"`
+	ChainId *big.Int `json:"chainId"`
+}
+
+func init() {
+	bytes, err := chainFile.ReadFile("data/chains.json")
+	if err != nil {
+		log.Crit("Cannot read chains.json", "error", err)
+	}
+
+	var networks []Network
+	err = json.Unmarshal(bytes, &networks)
+	if err != nil {
+		log.Crit("Cannot parse chains.json", "error", err)
+	}
+
+	cache := make(map[string]Network)
+	for _, n := range networks {
+		cache[n.ChainId.String()] = n
+	}
+
+	chainMap = cache
+}
 
 type Service struct {
 	config   *conf.Config
@@ -34,6 +68,20 @@ func NewService(config *conf.Config) *Service {
 
 func (s *Service) GetProvider() *provider.Provider {
 	return s.provider
+}
+
+func (s *Service) GetNetwork() Network {
+	chainId, _ := s.provider.GetNetwork()
+	network, ok := chainMap[chainId.String()]
+	if !ok {
+		return Network{
+			Name:    "Unknown",
+			Title:   "Unknown",
+			ChainId: chainId,
+		}
+	} else {
+		return network
+	}
 }
 
 func (s *Service) GetBlockHeight() (uint64, error) {

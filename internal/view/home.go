@@ -33,7 +33,7 @@ func (h *Home) initLayout() {
 	s := h.app.config.Style()
 
 	// Transactions
-	transactions := NewTransactionList(h.app)
+	transactions := NewTransactionList(h.app, false)
 	transactions.SetBorderColor(s.PrimaryBorderColor)
 	transactions.SetTitleColor(s.PrimaryTitleColor)
 	h.transactionList = transactions

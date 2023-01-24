@@ -57,10 +57,9 @@ func (a *App) Start() error {
 
 // firstSync synchronize latest blockchain informations and populate data to widgets
 func (a *App) firstSync() error {
-	conf := a.config
-
 	// update network
-	a.root.chainInfo.SetNetwork(conf.Network)
+	network := a.service.GetNetwork()
+	a.root.chainInfo.SetNetwork(StyledNetworkName(network))
 
 	// update block height
 	height, err := a.service.GetBlockHeight()
