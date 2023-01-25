@@ -120,8 +120,8 @@ func (r *Root) KeyMaps() util.KeyMaps {
 
 	// KeyCtrlC: quit
 	keymaps = append(keymaps, util.KeyMap{
-		Key:         tcell.KeyCtrlC,
-		Shortcut:    "CTRL-C",
+		Key:         util.KeyQ,
+		Shortcut:    "Q",
 		Description: "Quit",
 		Handler: func(*tcell.EventKey) {
 			r.app.Stop()

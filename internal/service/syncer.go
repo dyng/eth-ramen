@@ -16,8 +16,8 @@ import (
 const (
 	// TopicNewBlock is the topic about received new blocks
 	TopicNewBlock = "service:newBlock"
-	// TopicNewChainData is the topic about latest chain data (ether price, gas price, etc.)
-	TopicNewChainData = "service:newChainData"
+	// TopicChainData is the topic about latest chain data (ether price, gas price, etc.)
+	TopicChainData = "service:chainData"
 
 	// UpdatePeriod is the time duration between two updates
 	UpdatePeriod = 5 * time.Second
@@ -78,7 +78,7 @@ func (s *Syncer) sync() {
 	for {
 		select {
 		case newHeader := <-s.chBlock:
-			log.Debug("Received new block header", "hash", newHeader.Hash(),
+			log.Info("Received new block header", "hash", newHeader.Hash(),
 				"number", newHeader.Number)
 
 			block, err := s.service.GetProvider().GetBlockByHash(newHeader.Hash())
@@ -105,7 +105,7 @@ func (s *Syncer) sync() {
 				Price:    price,
 				GasPrice: gasPrice,
 			}
-			s.eventBus.Publish(TopicNewChainData, data)
+			s.eventBus.Publish(TopicChainData, data)
 		}
 	}
 }

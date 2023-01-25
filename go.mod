@@ -7,11 +7,10 @@ require (
 	github.com/ethereum/go-ethereum v1.10.26
 	github.com/gdamore/tcell/v2 v2.5.4
 	github.com/rivo/tview v0.0.0-20230104153304-892d1a2eb0da
+	github.com/shopspring/decimal v1.3.1
 	github.com/spf13/cobra v1.6.1
 	github.com/stretchr/testify v1.8.1
 )
-
-require github.com/shopspring/decimal v1.3.1
 
 require (
 	github.com/btcsuite/btcd/btcec/v2 v2.2.0 // indirect

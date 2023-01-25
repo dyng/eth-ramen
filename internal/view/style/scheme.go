@@ -8,12 +8,12 @@ import (
 // Palette
 //
 //	Color60:         #5F5F87
-//	Color69:         #5F87FF,
+//	Color69:         #5F87FF
 //	Color73:         #5FAFAF
-//	Color147:        #AFAFFF,
-//	ColorCoral:      #FF7F50,
-//	ColorDimGray:    #696969,
-//	ColorSandyBrown: #F4A460,
+//	Color147:        #AFAFFF
+//	ColorCoral:      #FF7F50
+//	ColorDimGray:    #696969
+//	ColorSandyBrown: #F4A460
 var Ethereum = &Style{
 	FgColor:               tcell.ColorFloralWhite,
 	BgColor:               tview.Styles.PrimitiveBackgroundColor,

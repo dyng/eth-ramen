@@ -33,7 +33,7 @@ func NewChainInfo(app *App) *ChainInfo {
 
 	// subscribe for new data
 	chainInfo.app.eventBus.Subscribe(service.TopicNewBlock, chainInfo.onNewBlock)
-	chainInfo.app.eventBus.Subscribe(service.TopicNewChainData, chainInfo.onNewChainData)
+	chainInfo.app.eventBus.Subscribe(service.TopicChainData, chainInfo.onNewChainData)
 
 	return chainInfo
 }
