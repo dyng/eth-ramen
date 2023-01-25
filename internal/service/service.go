@@ -256,6 +256,12 @@ func (s *Service) ToContract(account *Account) (*Contract, error) {
 		return nil, err
 	}
 
+	if source == "" {
+		return &Contract{
+			Account: account,
+		}, nil
+	}
+
 	return &Contract{
 		Account: account,
 		abi:     abi,

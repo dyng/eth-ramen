@@ -8,7 +8,7 @@ import (
 const (
 	// TypeMainnet is the Ethereum Mainnet
 	TypeMainnet = "mainnet"
-	// TypeTestnet is all the testnets (Ropsten, Rinkeby, Goerli etc.)
+	// TypeTestnet is all kinds of the testnets (Ropsten, Rinkeby, Goerli etc.)
 	TypeTestnet = "testnet"
 	// TypeDevnet is a local network for development purpose (Hardhat, Ganeche etc.)
 	TypeDevnet = "devnet"
@@ -37,4 +37,3 @@ func (n Network) NetType() string {
 
 	return TypeUnknown
 }
-

@@ -96,6 +96,12 @@ func (c *EtherscanClient) GetSourceCode(address common.Address) (string, *abi.AB
 	}
 
 	code := codes[0]
+
+	// contract source code not verified
+	if code.SourceCode == "" {
+		return "", nil, nil
+	}
+	
 	parsedAbi, err := abi.JSON(strings.NewReader(code.ABI))
 	if err != nil {
 		return "", nil, err

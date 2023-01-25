@@ -1,6 +1,7 @@
 package view
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/dyng/ramen/internal/common"
@@ -127,6 +128,9 @@ func (t *TransactionList) Clear() {
 func (t *TransactionList) refresh() {
 	// clear previous content at first
 	t.Clear()
+
+	// show transaction count
+	t.SetTitle(style.BoldPadding(fmt.Sprintf("Transactions[[coral]%d[-]]", len(t.txns))))
 
 	for i := 0; i < len(t.txns); i++ {
 		tx := t.txns[i]

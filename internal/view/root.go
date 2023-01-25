@@ -193,7 +193,7 @@ func (r *Root) updateHelp(page bodyPage) {
 	keymaps := r.KeyMaps().
 		Add(page.KeyMaps())
 
-	log.Debug("Update help with keys from page", "keymaps", keymaps)
+	log.Debug("Update keys help", "keymaps", keymaps)
 	r.help.SetKeyMaps(keymaps)
 }
 

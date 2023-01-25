@@ -51,12 +51,13 @@ func (h *Home) KeyMaps() util.KeyMaps {
 }
 
 func (h *Home) onNewBlock(block *common.Block) {
+	txns, err := h.app.service.GetTransactionsByBlock(block)
+	if err != nil {
+		log.Error("cannot extract transactions from block", "blockHash", block.Hash(), "error", err)
+		return
+	}
+
 	h.app.QueueUpdateDraw(func() {
-		txns, err := h.app.service.GetTransactionsByBlock(block)
-		if err != nil {
-			log.Error("cannot extract transactions from block", "blockHash", block.Hash(), "error", err)
-			return
-		}
 		h.transactionList.PrependTransactions(txns)
 	})
 }
