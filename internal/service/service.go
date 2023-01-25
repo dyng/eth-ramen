@@ -20,12 +20,6 @@ var chainFile embed.FS
 
 var chainMap map[string]Network
 
-type Network struct {
-	Name    string `json:"name"`
-	Title   string `json:"title"`
-	ChainId *big.Int `json:"chainId"`
-}
-
 func init() {
 	bytes, err := chainFile.ReadFile("data/chains.json")
 	if err != nil {
@@ -108,12 +102,34 @@ func (s *Service) GetAccount(address string) (*Account, error) {
 	}, nil
 }
 
-func (s *Service) GetLatestTransactions() (common.Transactions, error) {
-	block, err := s.provider.GetBlockByNumber(nil)
+func (s *Service) GetLatestTransactions(blockCnt int) (common.Transactions, error) {
+	max, err := s.GetBlockHeight()
 	if err != nil {
 		return nil, err
 	}
-	return s.GetTransactionsByBlock(block)
+
+	min := uint64(1)
+	cnt := uint64(blockCnt)
+	if max > cnt-1 {
+		min = max - cnt + 1
+	}
+
+	transactions := make([]common.Transaction, 0)
+	for i := max; i >= min; i-- {
+		block, err := s.provider.GetBlockByNumber(new(big.Int).SetUint64(i))
+		if err != nil {
+			return transactions, err
+		}
+
+		txns, err := s.GetTransactionsByBlock(block)
+		if err != nil {
+			return transactions, err
+		}
+
+		transactions = append(transactions, txns...)
+	}
+
+	return transactions, nil
 }
 
 func (s *Service) GetTransactionsByBlock(block *common.Block) (common.Transactions, error) {
@@ -135,12 +151,29 @@ func (s *Service) GetTransactionsByBlock(block *common.Block) (common.Transactio
 }
 
 func (s *Service) GetTransactionHistory(addr common.Address) (common.Transactions, error) {
-	switch s.provider.GetType() {
-	case provider.ProviderLocal:
-		return nil, provider.ErrProviderNotSupport
+	netType := s.GetNetwork().NetType()
+	switch netType {
+	case TypeDevnet:
+		return s.transactionsByTraverse(addr)
 	default:
 		return s.transactionsByEtherscan(addr)
 	}
+}
+
+func (s *Service) transactionsByTraverse(addr common.Address) (common.Transactions, error) {
+	candidates, err := s.GetLatestTransactions(100)
+	if err != nil {
+		return nil, err
+	}
+
+	txns := make([]common.Transaction, 0)
+	for _, t := range candidates {
+		if t.From().String() == addr.String() || t.To().String() == addr.String() {
+			txns = append(txns, t)
+		}
+	}
+
+	return txns, nil
 }
 
 func (s *Service) transactionsByEtherscan(addr common.Address) (common.Transactions, error) {

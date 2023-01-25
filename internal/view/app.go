@@ -2,6 +2,7 @@ package view
 
 import (
 	"github.com/asaskevich/EventBus"
+	"github.com/dyng/ramen/internal/common"
 	conf "github.com/dyng/ramen/internal/config"
 	serv "github.com/dyng/ramen/internal/service"
 	"github.com/ethereum/go-ethereum/log"
@@ -70,7 +71,14 @@ func (a *App) firstSync() error {
 	}
 
 	// show latest transactions
-	a.root.home.transactionList.LoadAsync(a.service.GetLatestTransactions)
+	a.root.home.transactionList.LoadAsync(func() (common.Transactions, error) {
+		netType := a.service.GetNetwork().NetType()
+		if netType == serv.TypeDevnet {
+			return a.service.GetLatestTransactions(100)
+		} else {
+			return a.service.GetLatestTransactions(1)
+		}
+	})
 
 	// start syncer
 	if err := a.syncer.Start(); err != nil {

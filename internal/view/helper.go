@@ -2,7 +2,6 @@ package view
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/dyng/ramen/internal/common"
 	serv "github.com/dyng/ramen/internal/service"
@@ -26,11 +25,13 @@ func StyledAccountType(t serv.AccountType) string {
 }
 
 func StyledNetworkName(n serv.Network) string {
-	if n.Name == "Ethereum Mainnet" {
+	netType := n.NetType()
+
+	if netType == serv.TypeMainnet {
 		return "[crimson::b]Mainnet[-:-:-]"
 	}
 
-	if strings.Contains(n.Title, "Testnet") {
+	if netType == serv.TypeTestnet {
 		return fmt.Sprintf("[lightgreen::b]%s[-:-:-]", n.Name)
 	}
 
