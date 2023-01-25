@@ -32,12 +32,12 @@ func (d *QueryDialog) initLayout() {
 	input := tview.NewInputField()
 	input.SetFieldWidth(80)
 	input.SetBorder(true)
-	input.SetBorderColor(s.QueryBorderColor)
+	input.SetBorderColor(s.DialogBorderColor)
 	input.SetTitle(style.Padding("Address"))
 	input.SetTitleColor(s.FgColor)
 	input.SetLabel("> ")
 	input.SetLabelColor(s.InputFieldLableColor)
-	input.SetFieldBackgroundColor(s.QueryBgColor)
+	input.SetFieldBackgroundColor(s.DialogBgColor)
 	input.SetDoneFunc(d.handleKey)
 	d.InputField = input
 }

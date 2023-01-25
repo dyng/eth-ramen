@@ -45,7 +45,7 @@ func (d *MethodCallDialog) initLayout() {
 	// method list
 	methods := tview.NewTable()
 	methods.SetBorder(true)
-	methods.SetBorderColor(s.MethNameBorderColor)
+	methods.SetBorderColor(s.DialogBorderColor)
 	methods.SetTitle(style.Padding("Method"))
 	methods.SetSelectable(true, false)
 	methods.SetSelectionChangedFunc(func(row, column int) {
@@ -73,7 +73,7 @@ func (d *MethodCallDialog) initLayout() {
 	// arguments form
 	args := tview.NewForm()
 	args.SetBorder(true)
-	args.SetBorderColor(s.MethArgsBorderColor)
+	args.SetBorderColor(s.DialogBorderColor)
 	args.SetTitle(style.Padding("Arguments"))
 	args.SetLabelColor(s.InputFieldLableColor)
 	args.SetFieldBackgroundColor(s.InputFieldBgColor)
@@ -133,9 +133,12 @@ func (d *MethodCallDialog) Clear() {
 }
 
 func (d *MethodCallDialog) refresh() {
+	d.methods.Clear()
 	d.args.Clear(true)
 	d.result.Clear()
-	d.showMethodList()
+	if d.contract.HasABI() {
+		d.showMethodList()
+	}
 }
 
 func (d *MethodCallDialog) showMethodList() {
@@ -199,7 +202,7 @@ func (d *MethodCallDialog) callMethod() {
 	for i := 0; i < d.args.GetFormItemCount(); i++ {
 		item := d.args.GetFormItem(i).(*tview.InputField)
 		arg := method.Inputs[i]
-		val, err := conv.Unpack(arg.Type, item.GetText())
+		val, err := conv.UnpackArgument(arg.Type, item.GetText())
 		if err == nil {
 			args = append(args, val)
 		} else {

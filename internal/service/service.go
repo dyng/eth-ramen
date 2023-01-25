@@ -168,7 +168,10 @@ func (s *Service) transactionsByTraverse(addr common.Address) (common.Transactio
 
 	txns := make([]common.Transaction, 0)
 	for _, t := range candidates {
-		if t.From().String() == addr.String() || t.To().String() == addr.String() {
+		if t.From().String() == addr.String() {
+			txns = append(txns, t)
+		}
+		if t.To() != nil && t.To().String() == addr.String() {
 			txns = append(txns, t)
 		}
 	}
@@ -241,7 +244,13 @@ func (s *Service) ToContract(account *Account) (*Contract, error) {
 		return nil, fmt.Errorf("Address %s is not a contract account", account.address.Hex())
 	}
 
-	// FIXME: support local chain
+	if s.GetNetwork().NetType() == TypeDevnet {
+		// in case of devnet, return a contract skeleton
+		return &Contract{
+			Account: account,
+		}, nil
+	}
+
 	source, abi, err := s.esclient.GetSourceCode(account.address)
 	if err != nil {
 		return nil, err

@@ -9,7 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
-func Unpack(t abi.Type, s string) (any, error) {
+func UnpackArgument(t abi.Type, s string) (any, error) {
 	switch t.T {
 	case abi.StringTy:
 		return s, nil

@@ -5,7 +5,35 @@ import (
 
 	"github.com/dyng/ramen/internal/common"
 	serv "github.com/dyng/ramen/internal/service"
+	"github.com/dyng/ramen/internal/view/util"
+	"github.com/gdamore/tcell/v2"
+	"github.com/rivo/tview"
 )
+
+type KeymapPrimitive interface {
+	SetInputCapture(capture func(event *tcell.EventKey) *tcell.EventKey) *tview.Box
+
+	KeyMaps() util.KeyMaps
+}
+
+func InitKeymap(p KeymapPrimitive, app *App) {
+	keymaps := p.KeyMaps()
+	p.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		// do not capture characters for InputField and TextArea
+		switch app.GetFocus().(type) {
+		case *tview.InputField, *tview.TextArea:
+			return event
+		}
+
+		handler, ok := keymaps.FindHandler(util.AsKey(event))
+		if ok {
+			handler(event)
+			return nil
+		} else {
+			return event
+		}
+	})
+}
 
 func Inc(i *int) int {
 	t := *i

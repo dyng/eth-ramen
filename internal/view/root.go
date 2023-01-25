@@ -52,10 +52,9 @@ func (r *Root) initLayout() {
 	r.help = help
 
 	// header
-	header := tview.NewGrid().
-		SetSize(1, 2, -1, -1)
-	header.AddItem(chainInfo, 0, 0, 1, 1, 0, 0, false)
-	header.AddItem(help, 0, 1, 1, 1, 0, 0, false)
+	header := tview.NewFlex().SetDirection(tview.FlexColumn)
+	header.AddItem(chainInfo, 0, 1, false)
+	header.AddItem(help, 0, 1, false)
 
 	// body
 	body := tview.NewPages()
@@ -93,16 +92,7 @@ func (r *Root) initLayout() {
 }
 
 func (r *Root) initKeymap() {
-	keymaps := r.KeyMaps()
-	r.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		handler, ok := keymaps.FindHandler(util.AsKey(event))
-		if ok {
-			handler(event)
-			return nil
-		} else {
-			return event
-		}
-	})
+	InitKeymap(r, r.app)
 }
 
 func (r *Root) KeyMaps() util.KeyMaps {

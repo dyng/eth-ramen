@@ -51,7 +51,7 @@ func (n *Notification) initKeymap() {
 	n.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		key := util.AsKey(event)
 		switch key {
-		case tcell.KeyEsc, tcell.KeyEnter, util.KeySpace, util.KeyQ:
+		case tcell.KeyEsc, tcell.KeyEnter, util.KeySpace:
 			n.app.root.HideNotification()
 			return nil
 		default:

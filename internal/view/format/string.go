@@ -16,7 +16,7 @@ func TruncateText(text string, size int) string {
 
 func NormalizeReceiverAddress(receiver *common.Address) string {
 	if receiver == nil {
-		return "0x"
+		return "0x0"
 	} else {
 		return receiver.Hex()
 	}

@@ -66,16 +66,7 @@ func (t *TransactionDetail) initLayout() {
 }
 
 func (t *TransactionDetail) initKeymap() {
-	keymaps := t.KeyMaps()
-	t.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		handler, ok := keymaps.FindHandler(util.AsKey(event))
-		if ok {
-			handler(event)
-			return nil
-		} else {
-			return event
-		}
-	})
+	InitKeymap(t, t.app)
 }
 
 func (t *TransactionDetail) KeyMaps() util.KeyMaps {
@@ -114,7 +105,7 @@ func (t *TransactionDetail) refresh() {
 	t.blockNumber.SetText(txn.BlockNumber().String())
 	t.timestamp.SetText(format.ToDatetime(txn.Timestamp()))
 	t.from.SetText(txn.From().Hex())
-	t.to.SetText(txn.To().Hex())
+	t.to.SetText(format.NormalizeReceiverAddress(txn.To()))
 	t.value.SetText(txn.Value().String())
 }
 

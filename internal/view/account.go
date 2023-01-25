@@ -18,7 +18,9 @@ type Account struct {
 	accountInfo     *AccountInfo
 	transactionList *TransactionList
 	methodCall      *MethodCallDialog
+	importABI       *ImportABIDialog
 	account         *serv.Account
+	contract        *serv.Contract
 }
 
 type AccountInfo struct {
@@ -50,6 +52,7 @@ func (a *Account) SetAccount(account *serv.Account) {
 	if account.IsContract() {
 		contract, err := account.AsContract()
 		if err == nil {
+			a.contract = contract
 			a.methodCall.SetContract(contract)
 		} else {
 			log.Error("Cannot upgrade account to contract", "account", account.GetAddress(), "error", err)
@@ -80,6 +83,10 @@ func (a *Account) initLayout() {
 	methodCall := NewMethodCallDialog(a.app)
 	a.methodCall = methodCall
 
+	// ImportABIDialog
+	importABI := NewImportABIDialog(a.app)
+	a.importABI = importABI
+
 	// Transactions
 	transactions := NewTransactionList(a.app, true)
 	transactions.SetTitleColor(s.SecondaryTitleColor)
@@ -99,16 +106,7 @@ func (a *Account) initLayout() {
 }
 
 func (a *Account) initKeymap() {
-	keymaps := a.KeyMaps()
-	a.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		handler, ok := keymaps.FindHandler(util.AsKey(event))
-		if ok {
-			handler(event)
-			return nil
-		} else {
-			return event
-		}
-	})
+	InitKeymap(a, a.app)
 }
 
 func (a *Account) KeyMaps() util.KeyMaps {
@@ -120,7 +118,14 @@ func (a *Account) KeyMaps() util.KeyMaps {
 		Shortcut:    "C",
 		Description: "Call Contract",
 		Handler: func(*tcell.EventKey) {
-			a.ShowMethodCallDialog()
+			// FIXME: don't show "Call Contract" for wallet account
+			if a.account.IsContract() {
+				if a.methodCall.contract.HasABI() {
+					a.ShowMethodCallDialog()
+				} else {
+					a.ShowImportABIDialog()
+				}
+			}
 		},
 	})
 
@@ -147,6 +152,27 @@ func (a *Account) HideMethodCallDialog() {
 
 	if a.methodCall.IsDisplay() {
 		a.methodCall.Display(false)
+	}
+
+	a.app.SetFocus(a)
+}
+
+func (a *Account) ShowImportABIDialog() {
+	log.Debug("Show importABI dialog")
+
+	if !a.importABI.IsDisplay() {
+		a.importABI.Clear()
+		a.importABI.Display(true)
+	}
+
+	a.app.SetFocus(a.importABI)
+}
+
+func (a *Account) HideImportABIDialog() {
+	log.Debug("Hide importABI dialog")
+
+	if a.importABI.IsDisplay() {
+		a.importABI.Display(false)
 	}
 
 	a.app.SetFocus(a)
@@ -180,20 +206,29 @@ func (a *Account) HasFocus() bool {
 	if a.methodCall.HasFocus() {
 		return true
 	}
+	if a.importABI.HasFocus() {
+		return true
+	}
 	return a.Flex.HasFocus()
 }
 
 // InputHandler implements tview.Primitive
 func (a *Account) InputHandler() func(event *tcell.EventKey, setFocus func(p tview.Primitive)) {
 	return func(event *tcell.EventKey, setFocus func(p tview.Primitive)) {
-		if a.Flex.HasFocus() {
-			if handler := a.Flex.InputHandler(); handler != nil {
+		if a.methodCall.HasFocus() {
+			if handler := a.methodCall.InputHandler(); handler != nil {
 				handler(event, setFocus)
 				return
 			}
 		}
-		if a.methodCall.HasFocus() {
-			if handler := a.methodCall.InputHandler(); handler != nil {
+		if a.importABI.HasFocus() {
+			if handler := a.importABI.InputHandler(); handler != nil {
+				handler(event, setFocus)
+				return
+			}
+		}
+		if a.Flex.HasFocus() {
+			if handler := a.Flex.InputHandler(); handler != nil {
 				handler(event, setFocus)
 				return
 			}
@@ -205,10 +240,12 @@ func (a *Account) InputHandler() func(event *tcell.EventKey, setFocus func(p tvi
 func (a *Account) SetRect(x int, y int, width int, height int) {
 	a.Flex.SetRect(x, y, width, height)
 	a.methodCall.SetRect(a.GetInnerRect())
+	a.importABI.SetRect(a.GetInnerRect())
 }
 
 // Draw implements tview.Primitive
 func (a *Account) Draw(screen tcell.Screen) {
 	a.Flex.Draw(screen)
 	a.methodCall.Draw(screen)
+	a.importABI.Draw(screen)
 }

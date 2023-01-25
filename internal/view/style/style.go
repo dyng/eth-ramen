@@ -26,17 +26,16 @@ type Style struct {
 	SecondaryTitleColor  tcell.Color
 	SecondaryBorderColor tcell.Color
 
-	// query
-	QueryBgColor tcell.Color
-	QueryBorderColor tcell.Color
-
 	// methodCall
-	MethNameBorderColor tcell.Color
-	MethArgsBorderColor tcell.Color
 	MethResultBorderColor tcell.Color
 
 	// table
 	TableHeaderStyle tcell.Style
+
+	// dialog
+	DialogBgColor tcell.Color
+	DialogBorderColor tcell.Color
+	ButtonBgColor tcell.Color
 
 	// progress bar
 	PrgBarCellColor   tcell.Color
