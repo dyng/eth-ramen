@@ -3,6 +3,7 @@ package view
 import (
 	"github.com/dyng/ramen/internal/view/format"
 	"github.com/dyng/ramen/internal/view/style"
+	"github.com/dyng/ramen/internal/view/util"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -10,14 +11,16 @@ import (
 
 type QueryDialog struct {
 	*tview.InputField
-	app *App
+	app     *App
 	display bool
+	spinner *util.Spinner
 }
 
 func NewQueryDialog(app *App) *QueryDialog {
 	query := &QueryDialog{
-		display:    false,
 		app:        app,
+		display:    false,
+		spinner:    util.NewSpinner(app.Application),
 	}
 
 	// setup layout
@@ -45,18 +48,31 @@ func (d *QueryDialog) initLayout() {
 func (d *QueryDialog) handleKey(key tcell.Key) {
 	switch key {
 	case tcell.KeyEnter:
+		// start account query
+		d.setSpinnerRect()
+		d.spinner.StartAndShow()
+
 		address := d.GetText()
-		if address != "" {
-			account, err := d.app.service.GetAccount(address)
-			if err != nil {
-				log.Error("Failed to fetch account of given address", "address", address, "error", err)
-				d.app.root.NotifyError(format.FineErrorMessage(
-					"Failed to fetch account of address %s", address, err))
-			} else {
-				d.app.root.HideQueryDialog()
-				d.app.root.ShowAccountPage(account)
+		query := func() {
+			if address != "" {
+				account, err := d.app.service.GetAccount(address)
+				d.app.QueueUpdateDraw(func() {
+					if err != nil {
+						log.Error("Failed to fetch account of given address",
+							"address", address, "error", err)
+						d.app.root.NotifyError(format.FineErrorMessage(
+							"Failed to fetch account of address %s", address, err))
+					} else {
+						d.app.root.HideQueryDialog()
+						d.app.root.ShowAccountPage(account)
+					}
+
+					// query finished
+					d.spinner.StopAndHide()
+				})
 			}
 		}
+		go query()
 	case tcell.KeyEsc:
 		d.app.root.HideQueryDialog()
 	}
@@ -79,10 +95,10 @@ func (d *QueryDialog) Draw(screen tcell.Screen) {
 	if d.display {
 		d.InputField.Draw(screen)
 	}
+	d.spinner.Draw(screen)
 }
 
-// SetRect implements tview.SetRect
-func (d *QueryDialog) SetRect(x int, y int, width int, height int) {
+func (d *QueryDialog) SetCentral(x int, y int, width int, height int) {
 	inputWidth, inputHeight := d.inputSize()
 	if inputWidth > width-2 {
 		inputWidth = width - 2
@@ -99,4 +115,10 @@ func (d *QueryDialog) inputSize() (int, int) {
 	width := len(d.GetLabel()) + d.GetFieldWidth()
 	height := d.GetFieldHeight() + 2
 	return width, height
+}
+
+func (d *QueryDialog) setSpinnerRect() {
+	x, y, _, _ := d.GetInnerRect()
+	sx := x + len(d.GetText()) + 2
+	d.spinner.SetRect(sx, y, 0, 0)
 }

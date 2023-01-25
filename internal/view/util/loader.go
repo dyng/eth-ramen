@@ -82,7 +82,7 @@ func (l *Loader) IsDisplay() bool {
 }
 
 // SetRect implements tview.SetRect
-func (l *Loader) SetRect(x, y, width, height int) {
+func (l *Loader) SetCentral(x, y, width, height int) {
 	loaderWidth := 20
 	loaderHeight := ProgressBarHeight + 2
 	loaderX := x + ((width - loaderWidth) / 2)

@@ -1,7 +1,10 @@
 package view
 
 import (
+	"fmt"
+
 	"github.com/dyng/ramen/internal/common"
+	"github.com/dyng/ramen/internal/common/conv"
 	"github.com/dyng/ramen/internal/view/format"
 	"github.com/dyng/ramen/internal/view/style"
 	"github.com/dyng/ramen/internal/view/util"
@@ -106,7 +109,7 @@ func (t *TransactionDetail) refresh() {
 	t.timestamp.SetText(format.ToDatetime(txn.Timestamp()))
 	t.from.SetText(txn.From().Hex())
 	t.to.SetText(format.NormalizeReceiverAddress(txn.To()))
-	t.value.SetText(txn.Value().String())
+	t.value.SetText(fmt.Sprintf("%s (%g Ether)", txn.Value(), conv.ToEther(txn.Value())))
 }
 
 func (t *TransactionDetail) viewAccount(address string) {

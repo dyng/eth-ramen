@@ -118,6 +118,16 @@ func (r *Root) KeyMaps() util.KeyMaps {
 		},
 	})
 
+	// KeyCtrlC: quit
+	keymaps = append(keymaps, util.KeyMap{
+		Key:         tcell.KeyCtrlC,
+		Shortcut:    "CTRL-C",
+		Description: "Quit",
+		Handler: func(*tcell.EventKey) {
+			r.app.Stop()
+		},
+	})
+
 	return keymaps
 }
 
@@ -227,8 +237,8 @@ func (r *Root) InputHandler() func(event *tcell.EventKey, setFocus func(p tview.
 // SetRect implements tview.SetRect
 func (r *Root) SetRect(x int, y int, width int, height int) {
 	r.Flex.SetRect(x, y, width, height)
-	r.query.SetRect(r.GetInnerRect())
-	r.notification.SetRect(r.GetInnerRect())
+	r.query.SetCentral(r.GetInnerRect())
+	r.notification.SetCentral(r.GetInnerRect())
 }
 
 // Draw implements tview.Primitive

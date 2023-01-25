@@ -195,6 +195,9 @@ func (d *MethodCallDialog) methodHasNoArgs() bool {
 }
 
 func (d *MethodCallDialog) callMethod() {
+	// start calling
+	d.spinner.StartAndShow()
+
 	methodName := d.methods.GetCell(d.methods.GetSelection()).Text
 	method := d.contract.GetABI().Methods[methodName]
 
@@ -213,9 +216,6 @@ func (d *MethodCallDialog) callMethod() {
 		}
 	}
 
-	// start calling...
-	d.showSpinner()
-
 	call := func() {
 		res, err := d.contract.Call(methodName, args...)
 		d.app.QueueUpdateDraw(func() {
@@ -226,21 +226,11 @@ func (d *MethodCallDialog) callMethod() {
 				d.result.SetText(fmt.Sprint(res...))
 			}
 
-			// finished
-			d.hideSpinner()
+			// calling finished
+			d.spinner.StopAndHide()
 		})
 	}
 	go call()
-}
-
-func (d *MethodCallDialog) showSpinner() {
-	d.spinner.Start()
-	d.spinner.Display(true)
-}
-
-func (d *MethodCallDialog) hideSpinner() {
-	d.spinner.Stop()
-	d.spinner.Display(false)
 }
 
 func (d *MethodCallDialog) Display(display bool) {
@@ -256,8 +246,7 @@ func (d *MethodCallDialog) Focus(delegate func(p tview.Primitive)) {
 	delegate(d.methods)
 }
 
-// SetRect implements tview.SetRect
-func (d *MethodCallDialog) SetRect(x int, y int, width int, height int) {
+func (d *MethodCallDialog) SetCentral(x int, y int, width int, height int) {
 	// self
 	dialogWidth := width / 2
 	dialogHeight := height / 2
@@ -266,16 +255,13 @@ func (d *MethodCallDialog) SetRect(x int, y int, width int, height int) {
 	d.Flex.SetRect(dialogX, dialogY, dialogWidth, dialogHeight)
 
 	// spinner
-	d.spinner.SetRect(d.result.GetInnerRect())
+	d.spinner.SetCentral(d.result.GetInnerRect())
 }
 
 // Draw implements tview.Primitive
 func (d *MethodCallDialog) Draw(screen tcell.Screen) {
-	// self
 	if d.display {
 		d.Flex.Draw(screen)
 	}
-
-	// spinner
 	d.spinner.Draw(screen)
 }

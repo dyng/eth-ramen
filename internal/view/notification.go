@@ -80,8 +80,7 @@ func (n *Notification) Draw(screen tcell.Screen) {
 	}
 }
 
-// SetRect implements tview.SetRect
-func (n *Notification) SetRect(x int, y int, width int, height int) {
+func (n *Notification) SetCentral(x int, y int, width int, height int) {
 	dialogWidth := width - width/3
 	dialogHeight := height / 4
 	if dialogHeight < 15 {

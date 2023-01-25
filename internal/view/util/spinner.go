@@ -33,6 +33,16 @@ func NewSpinner(app *tview.Application) *Spinner {
 	return spinner
 }
 
+func (s *Spinner) StartAndShow() {
+	s.Start()
+	s.Display(true)
+}
+
+func (s *Spinner) StopAndHide() {
+	s.Stop()
+	s.Display(false)
+}
+
 func (s *Spinner) Start() {
 	s.ticker = time.NewTicker(100 * time.Millisecond)
 
@@ -71,13 +81,17 @@ func (s *Spinner) IsDisplay() bool {
 	return s.display
 }
 
-// SetRect implements tview.SetRect
-func (s *Spinner) SetRect(x, y, width, height int) {
+func (s *Spinner) SetCentral(x, y, width, height int) {
 	spinnerWidth := 1
 	spinnerHeight := 1
 	spinnerX := x + ((width - spinnerWidth) / 2)
 	spinnerY := y + ((height - spinnerHeight) / 2)
 	s.Box.SetRect(spinnerX, spinnerY, spinnerWidth, spinnerHeight)
+}
+
+// SetRect implements tview.SetRect
+func (s *Spinner) SetRect(x, y, width, height int) {
+	s.Box.SetRect(x, y, 1, 1)
 }
 
 // Draw implements tview.Draw

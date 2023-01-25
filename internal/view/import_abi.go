@@ -133,8 +133,7 @@ func (d *ImportABIDialog) Draw(screen tcell.Screen) {
 	}
 }
 
-// SetRect implements tview.SetRect
-func (d *ImportABIDialog) SetRect(x int, y int, width int, height int) {
+func (d *ImportABIDialog) SetCentral(x int, y int, width int, height int) {
 	dialogWidth := width - width/2
 	dialogHeight := height - height/2
 	if dialogHeight < 10 {

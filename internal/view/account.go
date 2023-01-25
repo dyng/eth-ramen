@@ -118,7 +118,7 @@ func (a *Account) KeyMaps() util.KeyMaps {
 		Shortcut:    "C",
 		Description: "Call Contract",
 		Handler: func(*tcell.EventKey) {
-			// FIXME: don't show "Call Contract" for wallet account
+			// TODO: don't show "Call Contract" for wallet account
 			if a.account.IsContract() {
 				if a.methodCall.contract.HasABI() {
 					a.ShowMethodCallDialog()
@@ -239,8 +239,8 @@ func (a *Account) InputHandler() func(event *tcell.EventKey, setFocus func(p tvi
 // SetRect implements tview.SetRect
 func (a *Account) SetRect(x int, y int, width int, height int) {
 	a.Flex.SetRect(x, y, width, height)
-	a.methodCall.SetRect(a.GetInnerRect())
-	a.importABI.SetRect(a.GetInnerRect())
+	a.methodCall.SetCentral(a.GetInnerRect())
+	a.importABI.SetCentral(a.GetInnerRect())
 }
 
 // Draw implements tview.Primitive

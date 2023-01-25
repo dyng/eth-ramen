@@ -156,7 +156,7 @@ func (t *TransactionList) handleSelected(row int, column int) {
 // SetRect implements tview.SetRect
 func (t *TransactionList) SetRect(x, y, width, height int) {
 	t.Table.SetRect(x, y, width, height)
-	t.loader.SetRect(x, y, width, height)
+	t.loader.SetCentral(x, y, width, height)
 }
 
 // Draw implements tview.Draw
