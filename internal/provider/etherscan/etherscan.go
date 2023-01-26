@@ -19,7 +19,7 @@ import (
 const (
 	// DefaultTimeout is the default value for request timeout
 	// FIXME: code duplication
-	DefaultTimeout = 3000 * time.Millisecond
+	DefaultTimeout = 30 * time.Second
 )
 
 type EtherscanClient struct {
