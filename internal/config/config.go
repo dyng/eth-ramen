@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	DefaultProvider   = "local"
+	DefaultProvider   = "alchemy"
 	DefaultNetwork    = "mainnet"
 	DefaultConfigFile = os.Getenv("HOME") + "/.ramen.json"
 )
