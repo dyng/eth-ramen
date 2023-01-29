@@ -55,14 +55,14 @@ func ParseConfig(config *Config) error {
 		return err
 	}
 
-	// overwrite configurations
-	if configJson.Provider != nil {
+	// overwrite configurations only when the default value is used
+	if configJson.Provider != nil && config.Provider == DefaultProvider {
 		config.Provider = *configJson.Provider
 	}
-	if configJson.ApiKey != nil {
+	if configJson.ApiKey != nil && config.ApiKey == "" {
 		config.ApiKey = *configJson.ApiKey
 	}
-	if configJson.EtherscanApiKey != nil {
+	if configJson.EtherscanApiKey != nil && config.EtherscanApiKey == "" {
 		config.EtherscanApiKey = *configJson.EtherscanApiKey
 	}
 
