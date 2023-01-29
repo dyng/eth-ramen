@@ -5,6 +5,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 )
 
+// Transaction represents an Ethereum transaction.
 type Transaction interface {
 	BlockNumber() BigInt
 

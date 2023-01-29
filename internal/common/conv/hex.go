@@ -5,10 +5,12 @@ import (
 	"strconv"
 )
 
+// HexToInt converts string format of a hex value to int64.
 func HexToInt(s string) (int64, error) {
 	return strconv.ParseInt(trim0xPrefix(s), 16, 64)
 }
 
+// HexToInt converts string format of a series of hex value to byte slice.
 func HexToBytes(s string) ([]byte, error) {
 	return hex.DecodeString(trim0xPrefix(s))
 }

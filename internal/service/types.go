@@ -22,6 +22,12 @@ type Network struct {
 	ChainId *big.Int `json:"chainId"`
 }
 
+// NetType returns type of this network.
+//
+// There are 3 types of network:
+//   - Mainnet: a public network for serious applications
+//   - Testnet: a public network for testing
+//   - Devnet: a local network for development purpose
 func (n Network) NetType() string {
 	if n.Name == "Ethereum Mainnet" {
 		return TypeMainnet

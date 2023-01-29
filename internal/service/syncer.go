@@ -28,6 +28,7 @@ type ChainData struct {
 	GasPrice *big.Int
 }
 
+// Syncer is used to synchronize information from blockchain.
 type Syncer struct {
 	*sync.Mutex
 

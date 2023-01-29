@@ -56,10 +56,13 @@ func NewService(config *conf.Config) *Service {
 	return &service
 }
 
+// GetProvider returns underlying provider instance.
+// Usually you don't need to tackle with provider directly.
 func (s *Service) GetProvider() *provider.Provider {
 	return s.provider
 }
 
+// GetNetwork returns the network that provider is connected to.
 func (s *Service) GetNetwork() Network {
 	chainId, _ := s.provider.GetNetwork()
 	network, ok := chainMap[chainId.String()]
@@ -74,18 +77,22 @@ func (s *Service) GetNetwork() Network {
 	}
 }
 
+// GetBlockHeight returns the current block height.
 func (s *Service) GetBlockHeight() (uint64, error) {
 	return s.provider.GetBlockHeight()
 }
 
+// GetGasPrice returns average gas price of last block.
 func (s *Service) GetGasPrice() (common.BigInt, error) {
 	return s.provider.GetGasPrice()
 }
 
+// GetEthPrice returns ETH price in USD.
 func (s *Service) GetEthPrice() (*decimal.Decimal, error) {
 	return s.esclient.EthPrice()
 }
 
+// GetAccount returns an account of given address.
 func (s *Service) GetAccount(address string) (*Account, error) {
 	addr := gcommon.HexToAddress(address)
 	log.Debug("Try to fetch account", "address", address)
@@ -102,14 +109,15 @@ func (s *Service) GetAccount(address string) (*Account, error) {
 	}, nil
 }
 
-func (s *Service) GetLatestTransactions(blockCnt int) (common.Transactions, error) {
+// GetLatestTransactions returns transactions of last n blocks. 
+func (s *Service) GetLatestTransactions(n int) (common.Transactions, error) {
 	max, err := s.GetBlockHeight()
 	if err != nil {
 		return nil, err
 	}
 
 	min := uint64(1)
-	cnt := uint64(blockCnt)
+	cnt := uint64(n)
 	if max > cnt-1 {
 		min = max - cnt + 1
 	}
@@ -132,6 +140,7 @@ func (s *Service) GetLatestTransactions(blockCnt int) (common.Transactions, erro
 	return transactions, nil
 }
 
+// GetTransactionsByBlock returns transactions of given block hash.
 func (s *Service) GetTransactionsByBlock(block *common.Block) (common.Transactions, error) {
 	signer, err := s.provider.GetSigner()
 	if err != nil {
@@ -150,6 +159,8 @@ func (s *Service) GetTransactionsByBlock(block *common.Block) (common.Transactio
 	return txns, nil
 }
 
+// GetTransactionHistory returns transactions related to specified account.
+// This method relies on Etherscan API at chains other than local chain.
 func (s *Service) GetTransactionHistory(addr common.Address) (common.Transactions, error) {
 	netType := s.GetNetwork().NetType()
 	switch netType {
@@ -226,6 +237,7 @@ func (s *Service) transactionsByAlchemy(addr common.Address) (common.Transaction
 	return txns, nil
 }
 
+// GetContract returns a contract object of given address.
 func (s *Service) GetContract(addr common.Address) (*Contract, error) {
 	account, err := s.GetAccount(addr.Hex())
 	if err != nil {
@@ -239,6 +251,7 @@ func (s *Service) GetContract(addr common.Address) (*Contract, error) {
 	return s.ToContract(account)
 }
 
+// ToContract upgrade an account object to a contract.
 func (s *Service) ToContract(account *Account) (*Contract, error) {
 	if account.GetType() != TypeContract {
 		return nil, fmt.Errorf("Address %s is not a contract account", account.address.Hex())

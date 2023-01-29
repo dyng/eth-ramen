@@ -9,6 +9,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 )
 
+// UnpackArgument converts string format of a value into the Go type corresponding to given argument type.
 func UnpackArgument(t abi.Type, s string) (any, error) {
 	switch t.T {
 	case abi.StringTy:

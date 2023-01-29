@@ -22,11 +22,22 @@ type configJSON struct {
 }
 
 type Config struct {
-	DebugMode       bool
-	ConfigFile      string
-	Provider        string
-	Network         string
-	ApiKey          string
+	// DebugMode controls the log level (debug or info)
+	DebugMode bool
+
+	// ConfigFile is the path of configuration file
+	ConfigFile string
+
+	// Provider is the JSON-RPC Provider's name
+	Provider string
+
+	// Network is the name of network to connect
+	Network string
+
+	// ApiKey is the key for the provider
+	ApiKey string
+
+	// EtherscanApiKey is the key for Etherscan API
 	EtherscanApiKey string
 }
 
@@ -69,6 +80,7 @@ func ParseConfig(config *Config) error {
 	return nil
 }
 
+// Endpoint returns endpoint of given provider, respecting network to connect.
 func (c *Config) Endpoint() string {
 	// config api key
 	apiKey := c.ApiKey
@@ -84,6 +96,7 @@ func (c *Config) Endpoint() string {
 	}
 }
 
+// EtherscanEndpoint returns endpoint of Etherscan API.
 func (c *Config) EtherscanEndpoint() string {
 	if c.Network == "mainnet" {
 		return fmt.Sprintf("https://api.etherscan.io/api")
