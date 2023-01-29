@@ -83,7 +83,11 @@ func StyledTxnDirection(base *common.Address, txn common.Transaction) string {
 
 	if txn.From().String() == base.String() {
 		return "[sandybrown]OUT[-]"
-	} else {
+	}
+
+	if txn.To() != nil && txn.To().String() == base.String() {
 		return "[lightgreen]IN[-]"
 	}
+
+	return ""
 }

@@ -79,6 +79,24 @@ func (t *TransactionList) SetBaseAccount(account *common.Address) {
 	t.base = account
 }
 
+func (t *TransactionList) FilterAndPrependTransactions(txns common.Transactions) {
+	if t.base == nil {
+		t.PrependTransactions(txns)
+		return
+	}
+
+	toAdd := make(common.Transactions, 0)
+	for _, tx := range txns {
+		if tx.From().String() == t.base.String() {
+			toAdd = append(toAdd, tx)
+		}
+		if tx.To() != nil && tx.To().String() == t.base.String() {
+			toAdd = append(toAdd, tx)
+		}
+	}
+	t.PrependTransactions(toAdd)
+}
+
 func (t *TransactionList) PrependTransactions(txns common.Transactions) {
 	prepended := append(txns, t.txns...)
 	t.SetTransactions(prepended)

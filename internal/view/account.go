@@ -1,7 +1,9 @@
 package view
 
 import (
+	"github.com/dyng/ramen/internal/common"
 	"github.com/dyng/ramen/internal/common/conv"
+	"github.com/dyng/ramen/internal/service"
 	serv "github.com/dyng/ramen/internal/service"
 	"github.com/dyng/ramen/internal/view/format"
 	"github.com/dyng/ramen/internal/view/style"
@@ -40,6 +42,9 @@ func NewAccount(app *App) *Account {
 
 	// setup keymap
 	account.initKeymap()
+
+	// subscribe to new blocks
+	app.eventBus.Subscribe(service.TopicNewBlock, account.onNewBlock)
 
 	return account
 }
@@ -176,6 +181,18 @@ func (a *Account) HideImportABIDialog() {
 	}
 
 	a.app.SetFocus(a)
+}
+
+func (a *Account) onNewBlock(block *common.Block) {
+	txns, err := a.app.service.GetTransactionsByBlock(block)
+	if err != nil {
+		log.Error("cannot extract transactions from block", "blockHash", block.Hash(), "error", err)
+		return
+	}
+
+	a.app.QueueUpdateDraw(func() {
+		a.transactionList.FilterAndPrependTransactions(txns)
+	})
 }
 
 func (a *Account) refresh() {
