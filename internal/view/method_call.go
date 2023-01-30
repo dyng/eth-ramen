@@ -29,7 +29,7 @@ type MethodCallDialog struct {
 
 func NewMethodCallDialog(app *App) *MethodCallDialog {
 	mcd := &MethodCallDialog{
-		app: app,
+		app:     app,
 		spinner: util.NewSpinner(app.Application),
 	}
 
@@ -52,7 +52,7 @@ func (d *MethodCallDialog) initLayout() {
 		d.showArguments()
 	})
 	methods.SetSelectedFunc(func(row, column int) {
-		if d.methodHasNoArgs() {
+		if d.methodHasNoArg() {
 			d.callMethod()
 		} else {
 			d.focusNext()
@@ -147,10 +147,12 @@ func (d *MethodCallDialog) showMethodList() {
 	s := d.app.config.Style()
 	row := 0
 	for name, method := range d.contract.GetABI().Methods {
-		if method.IsConstant() {
-			d.methods.SetCell(row, 0, tview.NewTableCell(name).SetTextColor(s.FgColor))
-			row++
+		color := s.FgColor
+		if !method.IsConstant() {
+			color = tcell.ColorCrimson
 		}
+		d.methods.SetCell(row, 0, tview.NewTableCell(name).SetTextColor(color))
+		row++
 	}
 }
 
@@ -188,7 +190,7 @@ func (d *MethodCallDialog) atLastFormItem() bool {
 	return d.focusIdx >= d.args.GetFormItemCount()
 }
 
-func (d *MethodCallDialog) methodHasNoArgs() bool {
+func (d *MethodCallDialog) methodHasNoArg() bool {
 	methodName := d.methods.GetCell(d.methods.GetSelection()).Text
 	method := d.contract.GetABI().Methods[methodName]
 	return len(method.Inputs) == 0
@@ -201,6 +203,7 @@ func (d *MethodCallDialog) callMethod() {
 	methodName := d.methods.GetCell(d.methods.GetSelection()).Text
 	method := d.contract.GetABI().Methods[methodName]
 
+	// unpack arguments
 	args := make([]any, 0)
 	for i := 0; i < d.args.GetFormItemCount(); i++ {
 		item := d.args.GetFormItem(i).(*tview.InputField)
@@ -216,8 +219,29 @@ func (d *MethodCallDialog) callMethod() {
 		}
 	}
 
-	call := func() {
-		res, err := d.contract.Call(methodName, args...)
+	// ensure signer has signed in
+	var signer *service.Signer
+	if !method.IsConstant() {
+		signer = d.app.root.signer.GetSigner()
+		if signer == nil {
+			d.app.root.NotifyError(format.FineErrorMessage(""))
+			return
+		}
+	}
+
+	go func() {
+		var res []any
+		var err error
+
+		if method.IsConstant() {
+			res, err = d.contract.Call(methodName, args...)
+		} else {
+			// FIXME: waiting for transaction executed
+			hash, e := d.contract.Transact(signer, methodName, args...)
+			res = []any{fmt.Sprintf("Submitted! TxnHash: %s", hash)}
+			err = e
+		}
+
 		d.app.QueueUpdateDraw(func() {
 			if err != nil {
 				log.Error("Method call is failed", "name", methodName, "args", args, "error", err)
@@ -229,8 +253,7 @@ func (d *MethodCallDialog) callMethod() {
 			// calling finished
 			d.spinner.StopAndHide()
 		})
-	}
-	go call()
+	}()
 }
 
 func (d *MethodCallDialog) Display(display bool) {

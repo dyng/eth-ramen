@@ -15,3 +15,14 @@ func ToEther(wei *big.Int) *big.Float {
 func ToGwei(wei *big.Int) *big.Int {
 	return new(big.Int).Quo(wei, big.NewInt(params.GWei))
 }
+
+// FromEther converts values in Ether to wei.
+func FromEther(n int64) *big.Int {
+	return new(big.Int).Mul(big.NewInt(n), big.NewInt(params.Ether))
+}
+
+// FromGwei converts values in Gwei to wei.
+func FromGwei(n int64) *big.Int {
+	return new(big.Int).Mul(big.NewInt(n), big.NewInt(params.GWei))
+}
+

@@ -13,18 +13,19 @@ const (
 
 type Style struct {
 	// main
-	FgColor      tcell.Color
-	BgColor      tcell.Color
-	SectionColor tcell.Color
+	FgColor       tcell.Color
+	BgColor       tcell.Color
+	SectionColor  tcell.Color
+	SectionColor2 tcell.Color
 
 	// help
 	HelpKeyColor tcell.Color
 
 	// body
-	PrimaryTitleColor    tcell.Color
-	PrimaryBorderColor   tcell.Color
-	SecondaryTitleColor  tcell.Color
-	SecondaryBorderColor tcell.Color
+	TitleColor   tcell.Color
+	BorderColor  tcell.Color
+	TitleColor2  tcell.Color
+	BorderColor2 tcell.Color
 
 	// methodCall
 	MethResultBorderColor tcell.Color
@@ -33,9 +34,9 @@ type Style struct {
 	TableHeaderStyle tcell.Style
 
 	// dialog
-	DialogBgColor tcell.Color
+	DialogBgColor     tcell.Color
 	DialogBorderColor tcell.Color
-	ButtonBgColor tcell.Color
+	ButtonBgColor     tcell.Color
 
 	// progress bar
 	PrgBarCellColor   tcell.Color

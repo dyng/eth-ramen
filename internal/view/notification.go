@@ -42,7 +42,7 @@ func (n *Notification) initLayout() {
 
 	tv := tview.NewTextView()
 	tv.SetBorder(true)
-	tv.SetBorderColor(s.SecondaryBorderColor)
+	tv.SetBorderColor(s.BorderColor2)
 	tv.SetWrap(true)
 	n.TextView = tv
 }

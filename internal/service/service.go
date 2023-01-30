@@ -7,10 +7,12 @@ import (
 	"math/big"
 
 	"github.com/dyng/ramen/internal/common"
+	"github.com/dyng/ramen/internal/common/conv"
 	conf "github.com/dyng/ramen/internal/config"
 	"github.com/dyng/ramen/internal/provider"
 	"github.com/dyng/ramen/internal/provider/etherscan"
 	gcommon "github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/shopspring/decimal"
 )
@@ -95,7 +97,6 @@ func (s *Service) GetEthPrice() (*decimal.Decimal, error) {
 // GetAccount returns an account of given address.
 func (s *Service) GetAccount(address string) (*Account, error) {
 	addr := gcommon.HexToAddress(address)
-	log.Debug("Try to fetch account", "address", address)
 
 	code, err := s.provider.GetCode(addr)
 	if err != nil {
@@ -161,17 +162,17 @@ func (s *Service) GetTransactionsByBlock(block *common.Block) (common.Transactio
 
 // GetTransactionHistory returns transactions related to specified account.
 // This method relies on Etherscan API at chains other than local chain.
-func (s *Service) GetTransactionHistory(addr common.Address) (common.Transactions, error) {
+func (s *Service) GetTransactionHistory(address common.Address) (common.Transactions, error) {
 	netType := s.GetNetwork().NetType()
 	switch netType {
 	case TypeDevnet:
-		return s.transactionsByTraverse(addr)
+		return s.transactionsByTraverse(address)
 	default:
-		return s.transactionsByEtherscan(addr)
+		return s.transactionsByEtherscan(address)
 	}
 }
 
-func (s *Service) transactionsByTraverse(addr common.Address) (common.Transactions, error) {
+func (s *Service) transactionsByTraverse(address common.Address) (common.Transactions, error) {
 	candidates, err := s.GetLatestTransactions(100)
 	if err != nil {
 		return nil, err
@@ -179,10 +180,10 @@ func (s *Service) transactionsByTraverse(addr common.Address) (common.Transactio
 
 	txns := make([]common.Transaction, 0)
 	for _, t := range candidates {
-		if t.From().String() == addr.String() {
+		if t.From().String() == address.String() {
 			txns = append(txns, t)
 		}
-		if t.To() != nil && t.To().String() == addr.String() {
+		if t.To() != nil && t.To().String() == address.String() {
 			txns = append(txns, t)
 		}
 	}
@@ -190,16 +191,16 @@ func (s *Service) transactionsByTraverse(addr common.Address) (common.Transactio
 	return txns, nil
 }
 
-func (s *Service) transactionsByEtherscan(addr common.Address) (common.Transactions, error) {
-	return s.esclient.AccountTxList(addr)
+func (s *Service) transactionsByEtherscan(address common.Address) (common.Transactions, error) {
+	return s.esclient.AccountTxList(address)
 }
 
-func (s *Service) transactionsByAlchemy(addr common.Address) (common.Transactions, error) {
+func (s *Service) transactionsByAlchemy(address common.Address) (common.Transactions, error) {
 	hashList := make([]common.Hash, 0)
 
 	// incoming transactions
 	params := provider.GetAssetTransfersParams{
-		FromAddress: addr.Hex(),
+		FromAddress: address.Hex(),
 		Category:    []string{"external"},
 		Order:       "desc",
 		MaxCount:    "0x14", // decimal value: 20
@@ -215,7 +216,7 @@ func (s *Service) transactionsByAlchemy(addr common.Address) (common.Transaction
 
 	// outgoing transactions
 	params = provider.GetAssetTransfersParams{
-		ToAddress: addr.Hex(),
+		ToAddress: address.Hex(),
 		Category:  []string{"external"},
 		Order:     "desc",
 		MaxCount:  "0x14", // decimal value: 20
@@ -238,17 +239,38 @@ func (s *Service) transactionsByAlchemy(addr common.Address) (common.Transaction
 }
 
 // GetContract returns a contract object of given address.
-func (s *Service) GetContract(addr common.Address) (*Contract, error) {
-	account, err := s.GetAccount(addr.Hex())
+func (s *Service) GetContract(address common.Address) (*Contract, error) {
+	account, err := s.GetAccount(address.Hex())
 	if err != nil {
 		return nil, err
 	}
 
 	if account.GetType() != TypeContract {
-		return nil, fmt.Errorf("Address %s is not a contract account", addr.Hex())
+		return nil, fmt.Errorf("Address %s is not a contract account", address.Hex())
 	}
 
 	return s.ToContract(account)
+}
+
+// GetSigner returns a signer which can sign transactions
+func (s *Service) GetSigner(privateKey string) (*Signer, error) {
+	privKey, err := crypto.HexToECDSA(conv.Trim0xPrefix(privateKey))
+	if err != nil {
+		return nil, err
+	}
+
+	// only EOA can have private key
+	addr := crypto.PubkeyToAddress(privKey.PublicKey)
+	account := &Account{
+		service: s,
+		address: addr,
+	}
+
+	signer := &Signer{
+		Account:    account,
+		PrivateKey: privKey,
+	}
+	return signer, nil
 }
 
 // ToContract upgrade an account object to a contract.

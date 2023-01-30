@@ -44,6 +44,11 @@ func (a *Account) IsContract() bool {
 	return a.GetType() == TypeContract
 }
 
+// AsContract upgrade this account object to a contract.
+func (a *Account) AsContract() (*Contract, error) {
+	return a.service.ToContract(a)
+}
+
 // GetBalance returns current balance of this account.
 func (a *Account) GetBalance() (common.BigInt, error) {
 	return a.service.provider.GetBalance(a.address)
@@ -52,9 +57,4 @@ func (a *Account) GetBalance() (common.BigInt, error) {
 // GetTransactions returns transactions of this account.
 func (a *Account) GetTransactions() (common.Transactions, error) {
 	return a.service.GetTransactionHistory(a.address)
-}
-
-// AsContract upgrade this account object to a contract.
-func (a *Account) AsContract() (*Contract, error) {
-	return a.service.ToContract(a)
 }

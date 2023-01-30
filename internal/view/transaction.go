@@ -46,8 +46,8 @@ func (t *TransactionDetail) initLayout() {
 
 	t.SetBorder(true)
 	t.SetTitle(style.BoldPadding("Transaction Detail"))
-	t.SetTitleColor(s.PrimaryTitleColor)
-	t.SetBorderColor(s.PrimaryBorderColor)
+	t.SetTitleColor(s.TitleColor)
+	t.SetBorderColor(s.BorderColor)
 
 	t.hash = util.NewSectionWithColor("Hash", s.SectionColor, util.EmptyValue, s.FgColor)
 	t.hash.AddToTable(t.Table, 0, 0)

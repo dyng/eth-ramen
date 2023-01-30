@@ -94,16 +94,16 @@ func (a *Account) initLayout() {
 
 	// Transactions
 	transactions := NewTransactionList(a.app, true)
-	transactions.SetTitleColor(s.SecondaryTitleColor)
-	transactions.SetBorderColor(s.SecondaryBorderColor)
+	transactions.SetTitleColor(s.TitleColor2)
+	transactions.SetBorderColor(s.BorderColor2)
 	a.transactionList = transactions
 
 	// Root
 	flex := tview.NewFlex()
 	flex.SetBorder(true)
 	flex.SetTitle(style.BoldPadding("Account"))
-	flex.SetBorderColor(s.PrimaryBorderColor)
-	flex.SetTitleColor(s.PrimaryTitleColor)
+	flex.SetBorderColor(s.BorderColor)
+	flex.SetTitleColor(s.TitleColor)
 	flex.SetDirection(tview.FlexRow)
 	flex.AddItem(accountInfo, 0, 3, false)
 	flex.AddItem(transactions, 0, 7, true)

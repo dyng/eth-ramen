@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/dyng/ramen/internal/common"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/log"
 )
@@ -43,7 +44,7 @@ func (c *Contract) ImportABI(abiJson string) error {
 	return nil
 }
 
-// Call invokes given method of this contract. The arguments should be unpacked into correct type.
+// Call invokes a constant method of this contract. The arguments should be unpacked into correct type.
 func (c *Contract) Call(method string, args ...any) ([]any, error) {
 	m, ok := c.abi.Methods[method]
 	if !ok {
@@ -56,4 +57,14 @@ func (c *Contract) Call(method string, args ...any) ([]any, error) {
 
 	log.Debug("Try to call contract", "method", method, "args", args)
 	return c.service.provider.CallContract(c.address, c.abi, method, args...)
+}
+
+// Transact invokes a non-constant method of this contract. This will make changes to blockchain state and consume ethers.
+func (c *Contract) Transact(signer *Signer, method string, args ...any) (common.Hash, error) {
+	_, ok := c.abi.Methods[method]
+	if !ok {
+		return common.Hash{}, fmt.Errorf("Method %s is not found in contract", method)
+	}
+
+	return signer.CallContract(c.GetAddress(), c.abi, method, args...)
 }

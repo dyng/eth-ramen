@@ -1,6 +1,8 @@
 package common
 
 import (
+	"crypto/ecdsa"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 )
@@ -18,6 +20,16 @@ type Transaction interface {
 	Value() BigInt
 
 	Timestamp() uint64
+}
+
+// TxnRequest represents a transaction to be submitted for execution
+type TxnRequest struct {
+	PrivateKey *ecdsa.PrivateKey
+	To         *Address
+	Value      BigInt
+	Data       []byte
+	GasLimit   uint64
+	GasPrice   BigInt
 }
 
 // WrappedTransaction is a wrapper around geth Transaction for convenience

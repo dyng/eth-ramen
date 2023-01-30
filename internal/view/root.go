@@ -18,14 +18,21 @@ type Root struct {
 	*tview.Flex
 	app *App
 
-	chainInfo    *ChainInfo
-	help         *Help
+	// header
+	chainInfo *ChainInfo
+	signer    *Signer
+	help      *Help
+
+	// body
+	body        *tview.Pages
+	home        *Home
+	account     *Account
+	transaction *TransactionDetail
+
+	// dialogs
 	query        *QueryDialog
 	notification *Notification
-	body         *tview.Pages
-	home         *Home
-	account      *Account
-	transaction  *TransactionDetail
+	signin       *SignInDialog
 }
 
 func NewRoot(app *App) *Root {
@@ -47,14 +54,19 @@ func (r *Root) initLayout() {
 	chainInfo := NewChainInfo(r.app)
 	r.chainInfo = chainInfo
 
+	// signer
+	signer := NewSigner(r.app)
+	r.signer = signer
+
 	// help
 	help := NewHelp(r.app)
 	r.help = help
 
 	// header
 	header := tview.NewFlex().SetDirection(tview.FlexColumn)
-	header.AddItem(chainInfo, 0, 1, false)
-	header.AddItem(help, 0, 1, false)
+	header.AddItem(chainInfo, 0, 4, false)
+	header.AddItem(signer, 0, 3, false)
+	header.AddItem(help, 0, 3, false)
 
 	// body
 	body := tview.NewPages()
@@ -82,6 +94,10 @@ func (r *Root) initLayout() {
 	// notiication bar
 	notification := NewNotification(r.app)
 	r.notification = notification
+
+	// signin dialog
+	signin := NewSignInDialog(r.app)
+	r.signin = signin
 
 	// root
 	flex := tview.NewFlex().
@@ -118,7 +134,17 @@ func (r *Root) KeyMaps() util.KeyMaps {
 		},
 	})
 
-	// KeyCtrlC: quit
+	// KeyS: signin
+	keymaps = append(keymaps, util.KeyMap{
+		Key:         util.KeyS,
+		Shortcut:    "S",
+		Description: "Sign In",
+		Handler: func(*tcell.EventKey) {
+			r.ShowSignInDialog()
+		},
+	})
+
+	// KeyQ: quit
 	keymaps = append(keymaps, util.KeyMap{
 		Key:         util.KeyQ,
 		Shortcut:    "Q",
@@ -169,6 +195,28 @@ func (r *Root) HideNotification() {
 	r.app.SetFocus(r)
 }
 
+func (r *Root) ShowSignInDialog() {
+	log.Debug("Show signin dialog")
+	if !r.signin.IsDisplay() {
+		r.signin.Clear()
+		r.signin.Display(true)
+	}
+	r.app.SetFocus(r.signin)
+}
+
+func (r *Root) HideSignInDialog() {
+	log.Debug("Hide signin dialog")
+	if r.signin.IsDisplay() {
+		r.signin.Display(false)
+	}
+	r.app.SetFocus(r)
+}
+
+func (r *Root) SignIn(signer *service.Signer) {
+	log.Debug("Account signed in", "account", signer.GetAddress())
+	r.signer.SetSigner(signer)
+}
+
 func (r *Root) ShowHomePage() {
 	log.Debug("Switch to home page")
 	r.body.SwitchToPage("home")
@@ -204,6 +252,9 @@ func (r *Root) HasFocus() bool {
 	if r.query.HasFocus() {
 		return true
 	}
+	if r.signin.HasFocus() {
+		return true
+	}
 	if r.notification.HasFocus() {
 		return true
 	}
@@ -225,6 +276,12 @@ func (r *Root) InputHandler() func(event *tcell.EventKey, setFocus func(p tview.
 				return
 			}
 		}
+		if r.signin.HasFocus() {
+			if handler := r.signin.InputHandler(); handler != nil {
+				handler(event, setFocus)
+				return
+			}
+		}
 		if r.notification.HasFocus() {
 			if handler := r.notification.InputHandler(); handler != nil {
 				handler(event, setFocus)
@@ -238,6 +295,7 @@ func (r *Root) InputHandler() func(event *tcell.EventKey, setFocus func(p tview.
 func (r *Root) SetRect(x int, y int, width int, height int) {
 	r.Flex.SetRect(x, y, width, height)
 	r.query.SetCentral(r.GetInnerRect())
+	r.signin.SetCentral(r.GetInnerRect())
 	r.notification.SetCentral(r.GetInnerRect())
 }
 
@@ -245,5 +303,6 @@ func (r *Root) SetRect(x int, y int, width int, height int) {
 func (r *Root) Draw(screen tcell.Screen) {
 	r.Flex.Draw(screen)
 	r.query.Draw(screen)
+	r.signin.Draw(screen)
 	r.notification.Draw(screen)
 }

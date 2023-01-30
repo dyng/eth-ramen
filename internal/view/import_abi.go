@@ -45,7 +45,7 @@ func (d *ImportABIDialog) initLayout() {
 	// textarea
 	input := tview.NewTextArea()
 	input.SetBorder(true)
-	input.SetBorderColor(s.SecondaryBorderColor)
+	input.SetBorderColor(s.BorderColor2)
 	input.SetWrap(true)
 	d.input = input
 

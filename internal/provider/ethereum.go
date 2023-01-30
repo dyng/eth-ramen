@@ -12,6 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/rpc"
@@ -67,6 +68,7 @@ type Provider struct {
 	signer  types.Signer
 }
 
+// NewProvider returns
 func NewProvider(url string, providerType string) *Provider {
 	p := &Provider{
 		url:          url,
@@ -176,6 +178,25 @@ func (p *Provider) BatchTransactionByHash(hashList []common.Hash) (common.Transa
 	return result, nil
 }
 
+func (p *Provider) EstimateGas(address common.Address, from common.Address, input []byte) (uint64, error) {
+	// build call message
+	msg := ethereum.CallMsg{
+		From: from,
+		To:   &address,
+		Data: input,
+	}
+
+	ctx, cancel := p.createContext()
+	defer cancel()
+
+	gasLimit, err := p.client.EstimateGas(ctx, msg)
+	if err != nil {
+		return 0, err
+	}
+
+	return gasLimit, nil
+}
+
 func (p *Provider) CallContract(address common.Address, abi *abi.ABI, method string, args ...any) ([]any, error) {
 	// encode calldata
 	input, err := abi.Pack(method, args...)
@@ -185,7 +206,7 @@ func (p *Provider) CallContract(address common.Address, abi *abi.ABI, method str
 
 	// build call message
 	msg := ethereum.CallMsg{
-		To: &address,
+		To:   &address,
 		Data: input,
 	}
 
@@ -203,6 +224,42 @@ func (p *Provider) CallContract(address common.Address, abi *abi.ABI, method str
 	}
 
 	return vals, nil
+}
+
+func (p *Provider) SendTransaction(txnReq *common.TxnRequest) (common.Hash, error) {
+	ctx, cancel := p.createContext()
+	defer cancel()
+
+	key := txnReq.PrivateKey
+	from := crypto.PubkeyToAddress(key.PublicKey)
+
+	// fetch the next nonce
+	nonce, err := p.client.PendingNonceAt(ctx, from)
+	if err != nil {
+		return common.Hash{}, err
+	}
+
+	txn := types.NewTx(&types.LegacyTx{
+		Nonce:    nonce,
+		GasPrice: txnReq.GasPrice,
+		Gas:      txnReq.GasLimit,
+		To:       txnReq.To,
+		Value:    txnReq.Value,
+		Data:     txnReq.Data,
+	})
+
+	signer, err := p.GetSigner()
+	if err != nil {
+		return common.Hash{}, err
+	}
+
+	signedTx, err := types.SignTx(txn, signer, key)
+	if err != nil {
+		return common.Hash{}, err
+	}
+
+	err = p.client.SendTransaction(ctx, signedTx)
+	return signedTx.Hash(), err
 }
 
 func (p *Provider) SubscribeNewHead(ch chan<- *common.Header) (ethereum.Subscription, error) {

@@ -34,8 +34,8 @@ func (h *Home) initLayout() {
 
 	// Transactions
 	transactions := NewTransactionList(h.app, false)
-	transactions.SetBorderColor(s.PrimaryBorderColor)
-	transactions.SetTitleColor(s.PrimaryTitleColor)
+	transactions.SetBorderColor(s.BorderColor)
+	transactions.SetTitleColor(s.TitleColor)
 	h.transactionList = transactions
 
 	// Root

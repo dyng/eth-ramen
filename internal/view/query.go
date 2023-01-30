@@ -57,18 +57,17 @@ func (d *QueryDialog) handleKey(key tcell.Key) {
 			if address != "" {
 				account, err := d.app.service.GetAccount(address)
 				d.app.QueueUpdateDraw(func() {
+					d.spinner.StopAndHide()
+					d.app.root.HideQueryDialog()
+
 					if err != nil {
 						log.Error("Failed to fetch account of given address",
 							"address", address, "error", err)
 						d.app.root.NotifyError(format.FineErrorMessage(
 							"Failed to fetch account of address %s", address, err))
 					} else {
-						d.app.root.HideQueryDialog()
 						d.app.root.ShowAccountPage(account)
 					}
-
-					// query finished
-					d.spinner.StopAndHide()
 				})
 			}
 		}
