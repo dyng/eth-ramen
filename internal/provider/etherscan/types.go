@@ -2,11 +2,11 @@ package etherscan
 
 import (
 	"encoding/json"
-	"fmt"
 	"math/big"
 
 	"github.com/dyng/ramen/internal/common"
 	"github.com/dyng/ramen/internal/common/conv"
+	"github.com/pkg/errors"
 )
 
 type resMessage struct {
@@ -81,7 +81,7 @@ func (t *esTransaction) UnmarshalJSON(input []byte) error {
 	var tx txJSON
 	err := json.Unmarshal(input, &tx)
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 
 	t.blockNumber = big.NewInt(tx.BlockNumber)
@@ -96,19 +96,19 @@ func (t *esTransaction) UnmarshalJSON(input []byte) error {
 
 	bi, ok := new(big.Int).SetString(tx.Value, 10)
 	if !ok {
-		return fmt.Errorf("cannot convert value %s to big.Int", tx.Value)
+		return errors.Errorf("cannot convert value %s to big.Int", tx.Value)
 	}
 	t.value = bi
 
 	bi, ok = new(big.Int).SetString(tx.GasPrice, 10)
 	if !ok {
-		return fmt.Errorf("cannot convert value %s to big.Int", tx.GasPrice)
+		return errors.Errorf("cannot convert value %s to big.Int", tx.GasPrice)
 	}
 	t.gasPrice = bi
 
 	bs, err := conv.HexToBytes(tx.Input)
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 	t.data = bs
 

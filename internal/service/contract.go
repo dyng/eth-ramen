@@ -1,12 +1,12 @@
 package service
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/dyng/ramen/internal/common"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/log"
+	"github.com/pkg/errors"
 )
 
 // Contract represents a smart contract deployed on Ethereum network.
@@ -36,7 +36,7 @@ func (c *Contract) ImportABI(abiJson string) error {
 	log.Debug("Try to parse abi json", "json", abiJson)
 	parsedAbi, err := abi.JSON(strings.NewReader(abiJson))
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 
 	c.abi = &parsedAbi
@@ -48,11 +48,11 @@ func (c *Contract) ImportABI(abiJson string) error {
 func (c *Contract) Call(method string, args ...any) ([]any, error) {
 	m, ok := c.abi.Methods[method]
 	if !ok {
-		return nil, fmt.Errorf("Method %s is not found in contract", method)
+		return nil, errors.Errorf("Method %s is not found in contract", method)
 	}
 
 	if !m.IsConstant() {
-		return nil, fmt.Errorf("Method %s is not a constant method", method)
+		return nil, errors.Errorf("Method %s is not a constant method", method)
 	}
 
 	log.Debug("Try to call contract", "method", method, "args", args)
@@ -63,7 +63,7 @@ func (c *Contract) Call(method string, args ...any) ([]any, error) {
 func (c *Contract) Transact(signer *Signer, method string, args ...any) (common.Hash, error) {
 	_, ok := c.abi.Methods[method]
 	if !ok {
-		return common.Hash{}, fmt.Errorf("Method %s is not found in contract", method)
+		return common.Hash{}, errors.Errorf("Method %s is not found in contract", method)
 	}
 
 	return signer.CallContract(c.GetAddress(), c.abi, method, args...)

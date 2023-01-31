@@ -3,6 +3,7 @@ package cmd
 import (
 	"os"
 
+	"github.com/dyng/ramen/internal/common"
 	conf "github.com/dyng/ramen/internal/config"
 	"github.com/dyng/ramen/internal/view"
 	"github.com/ethereum/go-ethereum/log"
@@ -95,7 +96,7 @@ func initLogger() {
 		log.Crit("Failed to create log file", "error", err)
 	}
 
-	handler := log.StreamHandler(file, log.TerminalFormat(false))
+	handler := common.ErrorStackHandler(log.StreamHandler(file, log.TerminalFormat(false)))
 	if config.DebugMode {
 		handler = log.LvlFilterHandler(log.LvlDebug, handler)
 	} else {

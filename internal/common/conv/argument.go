@@ -1,12 +1,12 @@
 package conv
 
 import (
-	"fmt"
 	"math/big"
 	"strconv"
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/pkg/errors"
 )
 
 // UnpackArgument converts string format of a value into the Go type corresponding to given argument type.
@@ -23,7 +23,7 @@ func UnpackArgument(t abi.Type, s string) (any, error) {
 	case abi.HashTy:
 		return common.HexToHash(s), nil
 	default:
-		return nil, fmt.Errorf("unsupported argument type %v", t.T)
+		return nil, errors.Errorf("unsupported argument type %v", t.T)
 	}
 }
 
@@ -35,7 +35,7 @@ func parseInteger(t abi.Type, s string) (any, error) {
 		default:
 			i, ok := new(big.Int).SetString(s, 10)
 			if !ok {
-				return nil, fmt.Errorf("cannot parse %s as type %v", s, t.T)
+				return nil, errors.Errorf("cannot parse %s as type %v", s, t.T)
 			} else {
 				return i, nil
 			}
@@ -47,7 +47,7 @@ func parseInteger(t abi.Type, s string) (any, error) {
 		default:
 			i, ok := new(big.Int).SetString(s, 10)
 			if !ok {
-				return nil, fmt.Errorf("cannot parse %s as type %v", s, t.T)
+				return nil, errors.Errorf("cannot parse %s as type %v", s, t.T)
 			} else {
 				return i, nil
 			}

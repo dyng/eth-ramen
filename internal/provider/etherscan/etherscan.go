@@ -3,8 +3,6 @@ package etherscan
 import (
 	"context"
 	"encoding/json"
-	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -13,6 +11,7 @@ import (
 	"github.com/dyng/ramen/internal/common"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/log"
+	"github.com/pkg/errors"
 	"github.com/shopspring/decimal"
 )
 
@@ -37,7 +36,7 @@ func NewEtherscanClient(endpoint string, apiKey string) *EtherscanClient {
 func (c *EtherscanClient) AccountTxList(address common.Address) (common.Transactions, error) {
 	req, err := http.NewRequest(http.MethodGet, c.endpoint, nil)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	// build request
@@ -60,7 +59,7 @@ func (c *EtherscanClient) AccountTxList(address common.Address) (common.Transact
 
 	esTxns := make([]*esTransaction, 0)
 	if err = json.Unmarshal(result, &esTxns); err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	txns := make(common.Transactions, len(esTxns))
@@ -74,7 +73,7 @@ func (c *EtherscanClient) AccountTxList(address common.Address) (common.Transact
 func (c *EtherscanClient) GetSourceCode(address common.Address) (string, *abi.ABI, error) {
 	req, err := http.NewRequest(http.MethodGet, c.endpoint, nil)
 	if err != nil {
-		return "", nil, err
+		return "", nil, errors.WithStack(err)
 	}
 
 	// build request
@@ -92,7 +91,7 @@ func (c *EtherscanClient) GetSourceCode(address common.Address) (string, *abi.AB
 
 	var codes []contractJSON
 	if err = json.Unmarshal(result, &codes); err != nil {
-		return "", nil, err
+		return "", nil, errors.WithStack(err)
 	}
 
 	code := codes[0]
@@ -104,7 +103,7 @@ func (c *EtherscanClient) GetSourceCode(address common.Address) (string, *abi.AB
 	
 	parsedAbi, err := abi.JSON(strings.NewReader(code.ABI))
 	if err != nil {
-		return "", nil, err
+		return "", nil, errors.WithStack(err)
 	}
 
 	return code.SourceCode, &parsedAbi, nil
@@ -113,7 +112,7 @@ func (c *EtherscanClient) GetSourceCode(address common.Address) (string, *abi.AB
 func (c *EtherscanClient) EthPrice() (*decimal.Decimal, error) {
 	req, err := http.NewRequest(http.MethodGet, c.endpoint, nil)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	// build request
@@ -130,12 +129,12 @@ func (c *EtherscanClient) EthPrice() (*decimal.Decimal, error) {
 
 	var ethprice ethpriceJSON
 	if err = json.Unmarshal(result, &ethprice); err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	price, err := decimal.NewFromString(ethprice.EthUsd)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	return &price, nil
@@ -150,12 +149,12 @@ func (c *EtherscanClient) doRequest(request *http.Request) ([]byte, error) {
 
 	res, err := http.DefaultClient.Do(request)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	resBody, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	if res.StatusCode != 200 {
@@ -165,15 +164,12 @@ func (c *EtherscanClient) doRequest(request *http.Request) ([]byte, error) {
 
 	resMsg := resMessage{}
 	if err = json.Unmarshal(resBody, &resMsg); err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	if resMsg.Status == "0" {
-		var msg string
-		if err = json.Unmarshal(resMsg.Result, &msg); err != nil {
-			return nil, err
-		}
-		return nil, fmt.Errorf("Etherscan API status code is not OK. message is '%s'", msg)
+		msg := string(resMsg.Result)
+		return nil, errors.Errorf("Etherscan API status code is not OK. message is '%s'", msg)
 	}
 
 	return resMsg.Result, nil

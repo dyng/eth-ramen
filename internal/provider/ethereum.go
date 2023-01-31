@@ -3,7 +3,6 @@ package provider
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"math/big"
 	"time"
 
@@ -16,6 +15,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/pkg/errors"
 )
 
 var (
@@ -47,7 +47,7 @@ type txExtraInfo struct {
 
 func (tx *rpcTransaction) UnmarshalJSON(msg []byte) error {
 	if err := json.Unmarshal(msg, &tx.tx); err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 	return json.Unmarshal(msg, &tx.txExtraInfo)
 }
@@ -77,7 +77,7 @@ func NewProvider(url string, providerType string) *Provider {
 
 	rpcClient, err := rpc.Dial(url)
 	if err != nil {
-		log.Crit("Cannot connect to rpc server", "url", url, "error", err)
+		log.Crit("Cannot connect to rpc server", "url", url, "error", errors.WithStack(err))
 	}
 
 	p.rpcClient = rpcClient
@@ -97,7 +97,7 @@ func (p *Provider) GetNetwork() (common.BigInt, error) {
 	if p.chainId == nil {
 		chainId, err := p.client.NetworkID(ctx)
 		if err != nil {
-			return nil, err
+			return nil, errors.WithStack(err)
 		}
 		p.chainId = chainId
 		p.signer = types.NewLondonSigner(chainId)
@@ -108,7 +108,8 @@ func (p *Provider) GetNetwork() (common.BigInt, error) {
 func (p *Provider) GetGasPrice() (common.BigInt, error) {
 	ctx, cancel := p.createContext()
 	defer cancel()
-	return p.client.SuggestGasPrice(ctx)
+	gasPrice, err := p.client.SuggestGasPrice(ctx)
+	return gasPrice, errors.WithStack(err)
 }
 
 func (p *Provider) GetSigner() (types.Signer, error) {
@@ -122,31 +123,36 @@ func (p *Provider) GetSigner() (types.Signer, error) {
 func (p *Provider) GetCode(addr common.Address) ([]byte, error) {
 	ctx, cancel := p.createContext()
 	defer cancel()
-	return p.client.CodeAt(ctx, addr, nil)
+	code, err := p.client.CodeAt(ctx, addr, nil)
+	return code, errors.WithStack(err)
 }
 
 func (p *Provider) GetBalance(addr common.Address) (common.BigInt, error) {
 	ctx, cancel := p.createContext()
 	defer cancel()
-	return p.client.BalanceAt(ctx, addr, nil)
+	balance, err := p.client.BalanceAt(ctx, addr, nil)
+	return balance, errors.WithStack(err)
 }
 
 func (p *Provider) GetBlockHeight() (uint64, error) {
 	ctx, cancel := p.createContext()
 	defer cancel()
-	return p.client.BlockNumber(ctx)
+	height, err := p.client.BlockNumber(ctx)
+	return height, errors.WithStack(err)
 }
 
 func (p *Provider) GetBlockByHash(hash common.Hash) (*common.Block, error) {
 	ctx, cancel := p.createContext()
 	defer cancel()
-	return p.client.BlockByHash(ctx, hash)
+	block, err := p.client.BlockByHash(ctx, hash)
+	return block, errors.WithStack(err)
 }
 
 func (p *Provider) GetBlockByNumber(number common.BigInt) (*common.Block, error) {
 	ctx, cancel := p.createContext()
 	defer cancel()
-	return p.client.BlockByNumber(ctx, number)
+	block, err := p.client.BlockByNumber(ctx, number)
+	return block, errors.WithStack(err)
 }
 
 func (p *Provider) BatchTransactionByHash(hashList []common.Hash) (common.Transactions, error) {
@@ -166,7 +172,7 @@ func (p *Provider) BatchTransactionByHash(hashList []common.Hash) (common.Transa
 
 	err := p.rpcClient.BatchCallContext(ctx, reqs)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	result := make(common.Transactions, size)
@@ -191,7 +197,7 @@ func (p *Provider) EstimateGas(address common.Address, from common.Address, inpu
 
 	gasLimit, err := p.client.EstimateGas(ctx, msg)
 	if err != nil {
-		return 0, err
+		return 0, errors.WithStack(err)
 	}
 
 	return gasLimit, nil
@@ -201,7 +207,7 @@ func (p *Provider) CallContract(address common.Address, abi *abi.ABI, method str
 	// encode calldata
 	input, err := abi.Pack(method, args...)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	// build call message
@@ -215,12 +221,12 @@ func (p *Provider) CallContract(address common.Address, abi *abi.ABI, method str
 
 	data, err := p.client.CallContract(ctx, msg, nil)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	vals, err := abi.Unpack(method, data)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	return vals, nil
@@ -236,7 +242,7 @@ func (p *Provider) SendTransaction(txnReq *common.TxnRequest) (common.Hash, erro
 	// fetch the next nonce
 	nonce, err := p.client.PendingNonceAt(ctx, from)
 	if err != nil {
-		return common.Hash{}, err
+		return common.Hash{}, errors.WithStack(err)
 	}
 
 	txn := types.NewTx(&types.LegacyTx{
@@ -255,17 +261,18 @@ func (p *Provider) SendTransaction(txnReq *common.TxnRequest) (common.Hash, erro
 
 	signedTx, err := types.SignTx(txn, signer, key)
 	if err != nil {
-		return common.Hash{}, err
+		return common.Hash{}, errors.WithStack(err)
 	}
 
 	err = p.client.SendTransaction(ctx, signedTx)
-	return signedTx.Hash(), err
+	return signedTx.Hash(), errors.WithStack(err)
 }
 
 func (p *Provider) SubscribeNewHead(ch chan<- *common.Header) (ethereum.Subscription, error) {
 	ctx, cancel := p.createContext()
 	defer cancel()
-	return p.client.SubscribeNewHead(ctx, ch)
+	sub, err := p.client.SubscribeNewHead(ctx, ch)
+	return sub, errors.WithStack(err)
 }
 
 func (p *Provider) createContext() (context.Context, context.CancelFunc) {

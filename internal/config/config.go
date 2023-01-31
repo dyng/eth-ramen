@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/dyng/ramen/internal/view/style"
+	"github.com/pkg/errors"
 )
 
 var (
@@ -55,7 +56,7 @@ func ParseConfig(config *Config) error {
 		if os.IsNotExist(err) {
 			return nil
 		} else {
-			return err
+			return errors.WithStack(err)
 		}
 	}
 
@@ -63,7 +64,7 @@ func ParseConfig(config *Config) error {
 	configJson := new(configJSON)
 	err = json.Unmarshal(bytes, &configJson)
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 
 	// overwrite configurations only when the default value is used

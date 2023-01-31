@@ -6,6 +6,7 @@ import (
 	"github.com/dyng/ramen/internal/common"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/params"
+	"github.com/pkg/errors"
 )
 
 type Signer struct {
@@ -38,7 +39,7 @@ func (s *Signer) CallContract(address common.Address, abi *abi.ABI, method strin
 
 	input, err := abi.Pack(method, args...)
 	if err != nil {
-		return common.Hash{}, err
+		return common.Hash{}, errors.WithStack(err)
 	}
 
 	gasLimit, err := s.service.provider.EstimateGas(address, s.address, input)

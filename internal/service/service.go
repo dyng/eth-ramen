@@ -3,7 +3,6 @@ package service
 import (
 	"embed"
 	"encoding/json"
-	"fmt"
 	"math/big"
 
 	"github.com/dyng/ramen/internal/common"
@@ -14,6 +13,7 @@ import (
 	gcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
+	"github.com/pkg/errors"
 	"github.com/shopspring/decimal"
 )
 
@@ -25,13 +25,13 @@ var chainMap map[string]Network
 func init() {
 	bytes, err := chainFile.ReadFile("data/chains.json")
 	if err != nil {
-		log.Crit("Cannot read chains.json", "error", err)
+		log.Crit("Cannot read chains.json", "error", errors.WithStack(err))
 	}
 
 	var networks []Network
 	err = json.Unmarshal(bytes, &networks)
 	if err != nil {
-		log.Crit("Cannot parse chains.json", "error", err)
+		log.Crit("Cannot parse chains.json", "error", errors.WithStack(err))
 	}
 
 	cache := make(map[string]Network)
@@ -152,7 +152,7 @@ func (s *Service) GetTransactionsByBlock(block *common.Block) (common.Transactio
 	for i, tx := range block.Transactions() {
 		sender, err := signer.Sender(tx)
 		if err != nil {
-			return nil, err
+			return nil, errors.WithStack(err)
 		}
 		txns[i] = common.WrapTransactionWithBlock(tx, block, &sender)
 	}
@@ -246,7 +246,7 @@ func (s *Service) GetContract(address common.Address) (*Contract, error) {
 	}
 
 	if account.GetType() != TypeContract {
-		return nil, fmt.Errorf("Address %s is not a contract account", address.Hex())
+		return nil, errors.Errorf("Address %s is not a contract account", address.Hex())
 	}
 
 	return s.ToContract(account)
@@ -256,7 +256,7 @@ func (s *Service) GetContract(address common.Address) (*Contract, error) {
 func (s *Service) GetSigner(privateKey string) (*Signer, error) {
 	privKey, err := crypto.HexToECDSA(conv.Trim0xPrefix(privateKey))
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 
 	// only EOA can have private key
@@ -276,7 +276,7 @@ func (s *Service) GetSigner(privateKey string) (*Signer, error) {
 // ToContract upgrade an account object to a contract.
 func (s *Service) ToContract(account *Account) (*Contract, error) {
 	if account.GetType() != TypeContract {
-		return nil, fmt.Errorf("Address %s is not a contract account", account.address.Hex())
+		return nil, errors.Errorf("Address %s is not a contract account", account.address.Hex())
 	}
 
 	if s.GetNetwork().NetType() == TypeDevnet {
