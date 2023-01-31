@@ -3,6 +3,7 @@ package etherscan
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -169,7 +170,7 @@ func (c *EtherscanClient) doRequest(request *http.Request) ([]byte, error) {
 
 	if resMsg.Status == "0" {
 		msg := string(resMsg.Result)
-		return nil, errors.Errorf("Etherscan API status code is not OK. message is '%s'", msg)
+		log.Warn(fmt.Sprintf("Etherscan API status code is not OK. message is '%s'", msg))
 	}
 
 	return resMsg.Result, nil
