@@ -44,7 +44,7 @@ func Inc(i *int) int {
 func StyledAccountType(t serv.AccountType) string {
 	switch t {
 	case serv.TypeWallet:
-		return fmt.Sprintf("[lightgreen::b]%s[-:-:-]", t)
+		return fmt.Sprintf("[::b]%s[-:-:-]", t)
 	case serv.TypeContract:
 		return fmt.Sprintf("[dodgerblue::b]%s[-:-:-]", t)
 	default:

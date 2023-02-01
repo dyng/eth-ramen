@@ -8,6 +8,7 @@ require (
 	github.com/gdamore/tcell/v2 v2.5.4
 	github.com/pkg/errors v0.9.1
 	github.com/rivo/tview v0.0.0-20230104153304-892d1a2eb0da
+	github.com/rrivera/identicon v0.0.0-20180626043057-7875f45b0022
 	github.com/shopspring/decimal v1.3.1
 	github.com/spf13/cobra v1.6.1
 	github.com/stretchr/testify v1.8.1
@@ -27,6 +28,7 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
+	github.com/nullrocks/identicon v0.0.0-20180626043057-7875f45b0022 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.4.3 // indirect
 	github.com/shirou/gopsutil v3.21.11+incompatible // indirect

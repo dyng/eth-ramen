@@ -64,8 +64,8 @@ func (r *Root) initLayout() {
 
 	// header
 	header := tview.NewFlex().SetDirection(tview.FlexColumn)
-	header.AddItem(chainInfo, 0, 4, false)
-	header.AddItem(signer, 0, 3, false)
+	header.AddItem(chainInfo, 0, 3, false)
+	header.AddItem(signer, 0, 4, false)
 	header.AddItem(help, 0, 3, false)
 
 	// body

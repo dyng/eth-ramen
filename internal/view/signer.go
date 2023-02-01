@@ -3,25 +3,29 @@ package view
 import (
 	"github.com/dyng/ramen/internal/common/conv"
 	"github.com/dyng/ramen/internal/service"
+	"github.com/dyng/ramen/internal/view/style"
 	"github.com/dyng/ramen/internal/view/util"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/rivo/tview"
 )
 
 type Signer struct {
-	*tview.Table
+	tview.Primitive
 	app *App
 
 	signer      *service.Signer
 	initialized bool
+	avatar      *util.Avatar
+	table       *tview.Table
 	address     *util.Section
 	balance     *util.Section
 }
 
 func NewSigner(app *App) *Signer {
 	signer := &Signer{
-		Table: tview.NewTable(),
-		app:   app,
+		app:    app,
+		avatar: util.NewAvatar(style.AvatarSize),
+		table:  tview.NewTable(),
 	}
 
 	// setup layout
@@ -57,6 +61,9 @@ func (si *Signer) refresh() {
 	current := si.signer
 	addr := current.GetAddress()
 
+	// update avatar
+	si.avatar.SetAddress(addr)
+
 	// update address
 	si.address.SetText(addr.Hex())
 
@@ -73,17 +80,25 @@ func (si *Signer) layoutNoSigner() {
 	cell := tview.NewTableCell("[crimson]Not Signed In[-]")
 	cell.SetAlign(tview.AlignLeft)
 	cell.SetExpansion(1)
-	si.Table.SetCell(0, 0, cell)
+	si.table.SetCell(0, 0, cell)
+	si.Primitive = si.table
 }
 
 func (si *Signer) layoutSomeSigner() {
 	s := si.app.config.Style()
 
+	flex := tview.NewFlex()
+	flex.SetDirection(tview.FlexColumn)
+	flex.AddItem(si.avatar, style.AvatarSize*2+1, 0, false)
+	flex.AddItem(si.table, 0, 1, false)
+
 	address := util.NewSectionWithColor("Address:", s.SectionColor2, util.NAValue, s.FgColor)
-	address.AddToTable(si.Table, 0, 0)
+	address.AddToTable(si.table, 0, 0)
 	si.address = address
 
 	balance := util.NewSectionWithColor("Balance:", s.SectionColor2, util.NAValue, s.FgColor)
-	balance.AddToTable(si.Table, 1, 0)
+	balance.AddToTable(si.table, 1, 0)
 	si.balance = balance
+
+	si.Primitive = flex
 }

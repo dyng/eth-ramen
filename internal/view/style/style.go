@@ -9,6 +9,8 @@ import (
 const (
 	// HeaderHeight is the height of header
 	HeaderHeight = 5
+	// AvatarSize is the width and height of an avatar
+	AvatarSize = 4
 )
 
 type Style struct {

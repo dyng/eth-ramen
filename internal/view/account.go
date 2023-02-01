@@ -26,7 +26,8 @@ type Account struct {
 }
 
 type AccountInfo struct {
-	*tview.Table
+	*tview.Flex
+	avatar      *util.Avatar
 	address     *util.Section
 	accountType *util.Section
 	balance     *util.Section
@@ -74,14 +75,21 @@ func (a *Account) initLayout() {
 
 	// AccountInfo
 	accountInfo := &AccountInfo{
-		Table:       tview.NewTable(),
+		Flex:        tview.NewFlex(),
+		avatar:      util.NewAvatar(style.AvatarSize),
 		address:     util.NewSectionWithColor("Address", s.SectionColor, util.NAValue, s.FgColor),
 		accountType: util.NewSectionWithColor("Type", s.SectionColor, util.NAValue, s.FgColor),
 		balance:     util.NewSectionWithColor("Balance", s.SectionColor, util.NAValue, s.FgColor),
 	}
-	accountInfo.address.AddToTable(accountInfo.Table, 0, 0)
-	accountInfo.accountType.AddToTable(accountInfo.Table, 0, 2)
-	accountInfo.balance.AddToTable(accountInfo.Table, 1, 0)
+
+	info := tview.NewTable()
+	accountInfo.address.AddToTable(info, 2, 0)
+	accountInfo.accountType.AddToTable(info, 1, 0)
+	accountInfo.balance.AddToTable(info, 3, 0)
+
+	accountInfo.SetDirection(tview.FlexRow)
+	accountInfo.AddItem(accountInfo.avatar, style.AvatarSize, 0, false)
+	accountInfo.AddItem(info, 0, 1, false)
 	a.accountInfo = accountInfo
 
 	// MethodCallDialog
@@ -199,6 +207,9 @@ func (a *Account) refresh() {
 	addr := a.account.GetAddress()
 	a.accountInfo.address.SetText(addr.Hex())
 	a.accountInfo.accountType.SetText(StyledAccountType(a.account.GetType()))
+
+	// avatar
+	a.accountInfo.avatar.SetAddress(addr)
 
 	// fetch balance
 	bal, err := a.account.GetBalance()
