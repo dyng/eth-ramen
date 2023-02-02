@@ -252,9 +252,6 @@ func (d *MethodCallDialog) methodHasNoArg() bool {
 }
 
 func (d *MethodCallDialog) callMethod() {
-	// start calling
-	d.spinner.StartAndShow()
-
 	methodName := d.methodSelected()
 	method := d.contract.GetABI().Methods[methodName]
 
@@ -270,7 +267,6 @@ func (d *MethodCallDialog) callMethod() {
 			log.Error("Cannot unpack argument", "argument", arg, "input", item.GetText(), "error", err)
 			d.app.root.NotifyError(format.FineErrorMessage(
 				"Input type for argument '%s' is incorrect, should be '%s'.", arg.Name, arg.Type.String(), err))
-			d.spinner.StopAndHide()
 			return
 		}
 	}
@@ -281,12 +277,14 @@ func (d *MethodCallDialog) callMethod() {
 		signer = d.app.root.signer.GetSigner()
 		if signer == nil {
 			d.app.root.NotifyError(format.FineErrorMessage("Cannot call a non-constant method without a signer. Please signin at first."))
-			d.spinner.StopAndHide()
 			return
 		}
 	}
 
 	log.Info("Invoke contract method", "contract", d.contract.GetAddress(), "method", methodName, "args", args)
+
+	// start spinner
+	d.spinner.StartAndShow()
 
 	go func() {
 		var res []any
@@ -302,15 +300,15 @@ func (d *MethodCallDialog) callMethod() {
 		}
 
 		d.app.QueueUpdateDraw(func() {
+			// stop spinner
+			d.spinner.StopAndHide()
+
 			if err != nil {
 				log.Error("Method call is failed", "name", methodName, "args", args, "error", err)
 				d.app.root.NotifyError(format.FineErrorMessage("Cannot call contract method '%s'.", methodName, err))
 			} else {
 				d.result.SetText(fmt.Sprint(res...))
 			}
-
-			// calling finished
-			d.spinner.StopAndHide()
 		})
 	}()
 }

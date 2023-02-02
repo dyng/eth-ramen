@@ -49,7 +49,7 @@ func (d *QueryDialog) initLayout() {
 func (d *QueryDialog) handleKey(key tcell.Key) {
 	switch key {
 	case tcell.KeyEnter:
-		// start account query
+		// start spinner
 		d.setSpinnerRect()
 		d.spinner.StartAndShow()
 
@@ -58,6 +58,7 @@ func (d *QueryDialog) handleKey(key tcell.Key) {
 			if address != "" {
 				account, err := d.app.service.GetAccount(address)
 				d.app.QueueUpdateDraw(func() {
+					// stop spinner
 					d.spinner.StopAndHide()
 					d.Hide()
 

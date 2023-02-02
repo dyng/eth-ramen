@@ -81,7 +81,6 @@ func (t *TransactionList) SetBaseAccount(account *common.Address) {
 
 func (t *TransactionList) FilterAndPrependTransactions(txns common.Transactions) {
 	if t.base == nil {
-		t.PrependTransactions(txns)
 		return
 	}
 
@@ -114,16 +113,18 @@ func (t *TransactionList) LoadAsync(loader func() (common.Transactions, error)) 
 	// clear current content
 	t.Clear()
 
-	// display loader
+	// start loading animation
 	t.loader.Start()
 	t.loader.Display(true)
 
 	load := func() {
 		txns, err := loader()
 		t.app.QueueUpdateDraw(func() {
+			// stop loading animation
+			t.loader.Stop()
+			t.loader.Display(false)
+
 			if err == nil {
-				t.loader.Stop()
-				t.loader.Display(false)
 				if txns != nil {
 					t.SetTransactions(txns)
 				}

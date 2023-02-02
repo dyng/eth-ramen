@@ -54,6 +54,10 @@ func (a *Account) SetAccount(account *serv.Account) {
 	// change current account
 	a.account = account
 
+	// set base account
+	base := a.account.GetAddress()
+	a.transactionList.SetBaseAccount(&base)
+
 	// populate contract field if account is a contract
 	if account.IsContract() {
 		contract, err := account.AsContract()
@@ -185,10 +189,6 @@ func (a *Account) refresh() {
 	} else {
 		log.Error("Failed to fetch account balance", "account", addr, "error", err)
 	}
-
-	// set base account
-	base := a.account.GetAddress()
-	a.transactionList.SetBaseAccount(&base)
 
 	// update transaction history asynchronously
 	a.transactionList.LoadAsync(a.account.GetTransactions)
