@@ -3,6 +3,7 @@ package view
 import (
 	"github.com/dyng/ramen/internal/view/format"
 	"github.com/dyng/ramen/internal/view/style"
+	"github.com/dyng/ramen/internal/view/util"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -13,12 +14,14 @@ type SignInDialog struct {
 	app       *App
 	display   bool
 	lastFocus tview.Primitive
+	spinner   *util.Spinner
 }
 
 func NewSignInDialog(app *App) *SignInDialog {
 	d := &SignInDialog{
 		app:     app,
 		display: false,
+		spinner: util.NewSpinner(app.Application),
 	}
 
 	// setup layout
@@ -46,19 +49,27 @@ func (d *SignInDialog) initLayout() {
 func (d *SignInDialog) handleKey(key tcell.Key) {
 	switch key {
 	case tcell.KeyEnter:
-		// close dialog at first
-		d.Hide()
+		// start spinner
+		d.Loading()
 
 		privateKey := d.GetText()
-		if privateKey != "" {
-			signer, err := d.app.service.GetSigner(privateKey)
-			if err != nil {
-				log.Error("Failed to create signer", "error", err)
-				d.app.root.NotifyError(format.FineErrorMessage("Failed to create signer", err))
-			} else {
-				d.app.root.SignIn(signer)
-			}
+		if privateKey == "" {
+			return
 		}
+
+		go func() {
+			signer, err := d.app.service.GetSigner(privateKey)
+			d.app.QueueUpdateDraw(func() {
+				if err != nil {
+					d.Finished()
+					log.Error("Failed to create signer", "error", err)
+					d.app.root.NotifyError(format.FineErrorMessage("Failed to create signer", err))
+				} else {
+					d.app.root.SignIn(signer)
+					d.Finished()
+				}
+			})
+		}()
 	case tcell.KeyEsc:
 		d.Hide()
 	}
@@ -75,6 +86,18 @@ func (d *SignInDialog) Show() {
 func (d *SignInDialog) Hide() {
 	d.Display(false)
 	d.app.SetFocus(d.lastFocus)
+}
+
+// Loading will set the location of spinner and show it
+func (d *SignInDialog) Loading() {
+	d.setSpinnerRect()
+	d.spinner.StartAndShow()
+}
+
+// Finished will stop and hide spinner, as well as close current dialog
+func (d *SignInDialog) Finished() {
+	d.spinner.StopAndHide()
+	d.Hide()
 }
 
 func (d *SignInDialog) Clear() {
@@ -94,6 +117,7 @@ func (d *SignInDialog) Draw(screen tcell.Screen) {
 	if d.display {
 		d.InputField.Draw(screen)
 	}
+	d.spinner.Draw(screen)
 }
 
 func (d *SignInDialog) SetCentral(x int, y int, width int, height int) {
@@ -113,4 +137,10 @@ func (d *SignInDialog) inputSize() (int, int) {
 	width := len(d.GetLabel()) + d.GetFieldWidth()
 	height := d.GetFieldHeight() + 2
 	return width, height
+}
+
+func (d *SignInDialog) setSpinnerRect() {
+	x, y, _, _ := d.GetInnerRect()
+	sx := x + len(d.GetText()) + 1
+	d.spinner.SetRect(sx, y, 0, 0)
 }

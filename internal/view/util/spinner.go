@@ -103,5 +103,6 @@ func (s *Spinner) Draw(screen tcell.Screen) {
 	s.Box.DrawForSubclass(screen, s)
 	x, y, _, _ := s.Box.GetInnerRect()
 	frame := string(frames[s.counter])
+	screen.HideCursor()
 	tview.Print(screen, frame, x, y, 1, tview.AlignLeft, tcell.ColorDefault)
 }

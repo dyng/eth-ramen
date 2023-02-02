@@ -300,14 +300,13 @@ func (d *MethodCallDialog) callMethod() {
 		}
 
 		d.app.QueueUpdateDraw(func() {
-			// stop spinner
-			d.spinner.StopAndHide()
-
 			if err != nil {
+				d.spinner.StopAndHide() // must stop spinner before show error message
 				log.Error("Method call is failed", "name", methodName, "args", args, "error", err)
 				d.app.root.NotifyError(format.FineErrorMessage("Cannot call contract method '%s'.", methodName, err))
 			} else {
 				d.result.SetText(fmt.Sprint(res...))
+				d.spinner.StopAndHide()
 			}
 		})
 	}()

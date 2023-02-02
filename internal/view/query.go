@@ -50,28 +50,28 @@ func (d *QueryDialog) handleKey(key tcell.Key) {
 	switch key {
 	case tcell.KeyEnter:
 		// start spinner
-		d.setSpinnerRect()
-		d.spinner.StartAndShow()
+		d.Loading()
 
 		address := d.GetText()
-		go func() {
-			if address != "" {
-				account, err := d.app.service.GetAccount(address)
-				d.app.QueueUpdateDraw(func() {
-					// stop spinner
-					d.spinner.StopAndHide()
-					d.Hide()
+		if address == "" {
+			return
+		}
 
-					if err != nil {
-						log.Error("Failed to fetch account of given address",
-							"address", address, "error", err)
-						d.app.root.NotifyError(format.FineErrorMessage(
-							"Failed to fetch account of address %s", address, err))
-					} else {
-						d.app.root.ShowAccountPage(account)
-					}
-				})
-			}
+		go func() {
+			account, err := d.app.service.GetAccount(address)
+			d.app.QueueUpdateDraw(func() {
+				if err != nil {
+					d.Finished() // must stop loading animation before show error message
+					log.Error("Failed to fetch account of given address",
+						"address", address, "error", err)
+					d.app.root.NotifyError(format.FineErrorMessage(
+						"Failed to fetch account of address %s", address, err))
+				} else {
+					d.app.root.ShowAccountPage(account)
+					d.Finished()
+				}
+
+			})
 		}()
 	case tcell.KeyEsc:
 		d.Hide()
@@ -89,6 +89,18 @@ func (d *QueryDialog) Show() {
 func (d *QueryDialog) Hide() {
 	d.Display(false)
 	d.app.SetFocus(d.lastFocus)
+}
+
+// Loading will set the location of spinner and show it
+func (d *QueryDialog) Loading() {
+	d.setSpinnerRect()
+	d.spinner.StartAndShow()
+}
+
+// Finished will stop and hide spinner, as well as close current dialog
+func (d *QueryDialog) Finished() {
+	d.spinner.StopAndHide()
+	d.Hide()
 }
 
 func (d *QueryDialog) Clear() {
