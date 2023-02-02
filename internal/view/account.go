@@ -163,13 +163,21 @@ func (a *Account) ShowImportABIDialog() {
 }
 
 func (a *Account) onNewBlock(block *common.Block) {
+	if a.account == nil {
+		return
+	}
+
 	txns, err := a.app.service.GetTransactionsByBlock(block)
 	if err != nil {
 		log.Error("cannot extract transactions from block", "blockHash", block.Hash(), "error", err)
 		return
 	}
 
+	// update current account
+	a.account.UpdateBalance()
+
 	a.app.QueueUpdateDraw(func() {
+		a.refresh()
 		a.transactionList.FilterAndPrependTransactions(txns)
 	})
 }

@@ -18,6 +18,8 @@ const (
 	TopicNewBlock = "service:newBlock"
 	// TopicChainData is the topic about latest chain data (ether price, gas price, etc.)
 	TopicChainData = "service:chainData"
+	// TopicTick is a topic that receives tick event periodically
+	TopicTick = "service:tick"
 
 	// UpdatePeriod is the time duration between two updates
 	UpdatePeriod = 5 * time.Second
@@ -92,11 +94,13 @@ func (s *Syncer) sync() {
 		case tick := <-s.ticker.C:
 			log.Debug("Process periodic synchronization", "tick", tick)
 
+			// update eth price
 			price, err := s.service.GetEthPrice()
 			if err != nil {
 				log.Error("Failed to fetch ether's price", "error", err)
 			}
 
+			// update gas price
 			gasPrice, err := s.service.GetGasPrice()
 			if err != nil {
 				log.Error("Failed to fetch gas price", "error", err)
@@ -107,6 +111,10 @@ func (s *Syncer) sync() {
 				GasPrice: gasPrice,
 			}
 			s.eventBus.Publish(TopicChainData, data)
+
+			go func() {
+				s.eventBus.Publish(TopicTick, tick)
+			}()
 		}
 	}
 }

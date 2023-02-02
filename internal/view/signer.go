@@ -1,6 +1,7 @@
 package view
 
 import (
+	"github.com/dyng/ramen/internal/common"
 	"github.com/dyng/ramen/internal/common/conv"
 	"github.com/dyng/ramen/internal/service"
 	"github.com/dyng/ramen/internal/view/style"
@@ -29,6 +30,9 @@ func NewSigner(app *App) *Signer {
 
 	// setup layout
 	signer.initLayout()
+
+	// subscribe tick event
+	app.eventBus.Subscribe(service.TopicNewBlock, signer.onNewBlock)
 
 	return signer
 }
@@ -96,4 +100,11 @@ func (si *Signer) layoutSomeSigner() {
 	si.balance = balance
 
 	si.Primitive = flex
+}
+
+func (si *Signer) onNewBlock(block *common.Block) {
+	if si.signer != nil {
+		si.signer.UpdateBalance()
+		si.refresh()
+	}
 }
