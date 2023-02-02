@@ -41,19 +41,19 @@ func NewChainInfo(app *App) *ChainInfo {
 func (ci *ChainInfo) initLayout() {
 	s := ci.app.config.Style()
 
-	network := util.NewSectionWithColor("Network:", s.SectionColor, util.NAValue, s.FgColor)
+	network := util.NewSectionWithStyle("Network:", util.NAValue, s)
 	network.AddToTable(ci.Table, 0, 0)
 	ci.network = network
 
-	height := util.NewSectionWithColor("Block Height:", s.SectionColor, util.NAValue, s.FgColor)
+	height := util.NewSectionWithStyle("Block Height:", util.NAValue, s)
 	height.AddToTable(ci.Table, 1, 0)
 	ci.height = height
 
-	gasPrice := util.NewSectionWithColor("Gas Price:", s.SectionColor, util.NAValue, s.FgColor)
+	gasPrice := util.NewSectionWithStyle("Gas Price:", util.NAValue, s)
 	gasPrice.AddToTable(ci.Table, 2, 0)
 	ci.gasPrice = gasPrice
 
-	ethPrice := util.NewSectionWithColor("Ether:", s.SectionColor, util.NAValue, s.FgColor)
+	ethPrice := util.NewSectionWithStyle("Ether:", util.NAValue, s)
 	ethPrice.AddToTable(ci.Table, 0, 2)
 	ci.ethPrice = ethPrice
 }

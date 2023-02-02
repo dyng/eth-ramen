@@ -12,9 +12,10 @@ type ImportABIDialog struct {
 	*tview.Flex
 	app     *App
 	display bool
+	lastFocus tview.Primitive
 
-	input *tview.TextArea
-	button *tview.Button
+	input     *tview.TextArea
+	button    *tview.Button
 }
 
 func NewImportABIDialog(app *App) *ImportABIDialog {
@@ -73,7 +74,7 @@ func (d *ImportABIDialog) initKeymap() {
 		key := util.AsKey(event)
 		switch key {
 		case tcell.KeyEsc:
-			d.app.root.account.HideImportABIDialog()
+			d.Hide()
 			return nil
 		case tcell.KeyTab:
 			d.focusNext()
@@ -99,9 +100,6 @@ func (d *ImportABIDialog) focusNext() {
 func (d *ImportABIDialog) doImport() {
 	account := d.app.root.account
 
-	// hide dialog
-	account.HideImportABIDialog()
-	
 	// read and parse abi json
 	err := account.contract.ImportABI(d.input.GetText())
 	if err != nil {
@@ -109,9 +107,25 @@ func (d *ImportABIDialog) doImport() {
 		return
 	}
 
+	// hide dialog if importation complete
+	d.Hide()
+
 	// show callMethod dialog
 	account.methodCall.refresh()
 	account.ShowMethodCallDialog()
+}
+
+func (d *ImportABIDialog) Show() {
+	// save last focused element
+	d.lastFocus = d.app.GetFocus()
+
+	d.Display(true)
+	d.app.SetFocus(d)
+}
+
+func (d *ImportABIDialog) Hide() {
+	d.Display(false)
+	d.app.SetFocus(d.lastFocus)
 }
 
 func (d *ImportABIDialog) Clear() {

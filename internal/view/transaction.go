@@ -49,22 +49,22 @@ func (t *TransactionDetail) initLayout() {
 	t.SetTitleColor(s.TitleColor)
 	t.SetBorderColor(s.BorderColor)
 
-	t.hash = util.NewSectionWithColor("Hash", s.SectionColor, util.EmptyValue, s.FgColor)
+	t.hash = util.NewSectionWithStyle("Hash", util.EmptyValue, s)
 	t.hash.AddToTable(t.Table, 0, 0)
 
-	t.blockNumber = util.NewSectionWithColor("BlockNumber", s.SectionColor, util.EmptyValue, s.FgColor)
+	t.blockNumber = util.NewSectionWithStyle("BlockNumber", util.EmptyValue, s)
 	t.blockNumber.AddToTable(t.Table, 1, 0)
 
-	t.timestamp = util.NewSectionWithColor("Timestamp", s.SectionColor, util.EmptyValue, s.FgColor)
+	t.timestamp = util.NewSectionWithStyle("Timestamp", util.EmptyValue, s)
 	t.timestamp.AddToTable(t.Table, 2, 0)
 
-	t.from = util.NewSectionWithColor("From", s.SectionColor, util.EmptyValue, s.FgColor)
+	t.from = util.NewSectionWithStyle("From", util.EmptyValue, s)
 	t.from.AddToTable(t.Table, 3, 0)
 
-	t.to = util.NewSectionWithColor("To", s.SectionColor, util.EmptyValue, s.FgColor)
+	t.to = util.NewSectionWithStyle("To", util.EmptyValue, s)
 	t.to.AddToTable(t.Table, 4, 0)
 
-	t.value = util.NewSectionWithColor("Value", s.SectionColor, util.EmptyValue, s.FgColor)
+	t.value = util.NewSectionWithStyle("Value", util.EmptyValue, s)
 	t.value.AddToTable(t.Table, 5, 0)
 }
 

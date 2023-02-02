@@ -33,6 +33,7 @@ type Root struct {
 	query        *QueryDialog
 	notification *Notification
 	signin       *SignInDialog
+	transfer     *TransferDialog
 }
 
 func NewRoot(app *App) *Root {
@@ -99,6 +100,10 @@ func (r *Root) initLayout() {
 	signin := NewSignInDialog(r.app)
 	r.signin = signin
 
+	// transfer dialog
+	transfer := NewTransferDialog(r.app)
+	r.transfer = transfer
+
 	// root
 	flex := tview.NewFlex().
 		SetDirection(tview.FlexRow).
@@ -144,6 +149,16 @@ func (r *Root) KeyMaps() util.KeyMaps {
 		},
 	})
 
+	// KeyM: transfer
+	keymaps = append(keymaps, util.KeyMap{
+		Key:         util.KeyM,
+		Shortcut:    "M",
+		Description: "Transfer",
+		Handler: func(*tcell.EventKey) {
+			r.ShowTransferDialog()
+		},
+	})
+
 	// KeyQ: quit
 	keymaps = append(keymaps, util.KeyMap{
 		Key:         util.KeyQ,
@@ -158,20 +173,12 @@ func (r *Root) KeyMaps() util.KeyMaps {
 }
 
 func (r *Root) ShowQueryDialog() {
-	log.Debug("Show query dialog")
-	if !r.query.IsDisplay() {
-		r.query.Clear()
-		r.query.Display(true)
-	}
-	r.app.SetFocus(r.query)
+	r.query.Clear()
+	r.query.Show()
 }
 
-func (r *Root) HideQueryDialog() {
-	log.Debug("Hide query dialog")
-	if r.query.IsDisplay() {
-		r.query.Display(false)
-	}
-	r.app.SetFocus(r)
+func (r *Root) NotifyInfo(message string) {
+	r.ShowNotification("[lightgreen::b]INFO[-::-]", message)
 }
 
 func (r *Root) NotifyError(errmsg string) {
@@ -179,42 +186,26 @@ func (r *Root) NotifyError(errmsg string) {
 }
 
 func (r *Root) ShowNotification(title string, text string) {
-	log.Debug("Show notification")
-	if !r.notification.IsDisplay() {
-		r.notification.SetContent(title, text)
-		r.notification.Display(true)
-	}
-	r.app.SetFocus(r.notification)
-}
-
-func (r *Root) HideNotification() {
-	log.Debug("Hide notification")
-	if r.notification.IsDisplay() {
-		r.notification.Display(false)
-	}
-	r.app.SetFocus(r)
+	r.notification.SetContent(title, text)
+	r.notification.Show()
 }
 
 func (r *Root) ShowSignInDialog() {
-	log.Debug("Show signin dialog")
-	if !r.signin.IsDisplay() {
-		r.signin.Clear()
-		r.signin.Display(true)
-	}
-	r.app.SetFocus(r.signin)
+	r.signin.Clear()
+	r.signin.Show()
 }
 
-func (r *Root) HideSignInDialog() {
-	log.Debug("Hide signin dialog")
-	if r.signin.IsDisplay() {
-		r.signin.Display(false)
+func (r *Root) ShowTransferDialog() {
+	if r.signer.HasSignedIn() {
+		r.transfer.ClearAndRefresh()
+		r.transfer.Show()
 	}
-	r.app.SetFocus(r)
 }
 
 func (r *Root) SignIn(signer *service.Signer) {
 	log.Debug("Account signed in", "account", signer.GetAddress())
 	r.signer.SetSigner(signer)
+	r.transfer.SetSender(signer)
 }
 
 func (r *Root) ShowHomePage() {
@@ -255,6 +246,9 @@ func (r *Root) HasFocus() bool {
 	if r.signin.HasFocus() {
 		return true
 	}
+	if r.transfer.HasFocus() {
+		return true
+	}
 	if r.notification.HasFocus() {
 		return true
 	}
@@ -282,6 +276,12 @@ func (r *Root) InputHandler() func(event *tcell.EventKey, setFocus func(p tview.
 				return
 			}
 		}
+		if r.transfer.HasFocus() {
+			if handler := r.transfer.InputHandler(); handler != nil {
+				handler(event, setFocus)
+				return
+			}
+		}
 		if r.notification.HasFocus() {
 			if handler := r.notification.InputHandler(); handler != nil {
 				handler(event, setFocus)
@@ -296,6 +296,7 @@ func (r *Root) SetRect(x int, y int, width int, height int) {
 	r.Flex.SetRect(x, y, width, height)
 	r.query.SetCentral(r.GetInnerRect())
 	r.signin.SetCentral(r.GetInnerRect())
+	r.transfer.SetCentral(r.GetInnerRect())
 	r.notification.SetCentral(r.GetInnerRect())
 }
 
@@ -304,5 +305,6 @@ func (r *Root) Draw(screen tcell.Screen) {
 	r.Flex.Draw(screen)
 	r.query.Draw(screen)
 	r.signin.Draw(screen)
+	r.transfer.Draw(screen)
 	r.notification.Draw(screen)
 }

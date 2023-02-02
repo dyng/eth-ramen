@@ -1,6 +1,7 @@
 package util
 
 import (
+	"github.com/dyng/ramen/internal/view/style"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
@@ -12,6 +13,10 @@ type Section struct {
 
 func NewSection(title string, text string) *Section {
 	return NewSectionWithColor(title, tcell.ColorDefault, text, tcell.ColorDefault)
+}
+
+func NewSectionWithStyle(title string, text string, style *style.Style) *Section {
+	return NewSectionWithColor(title, style.SectionColor, text, style.FgColor)
 }
 
 func NewSectionWithColor(title string, titleColor tcell.Color, text string, textColor tcell.Color) *Section {

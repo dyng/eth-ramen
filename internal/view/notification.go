@@ -12,8 +12,9 @@ type Notification struct {
 	app     *App
 	display bool
 
-	title string
-	text  string
+	title     string
+	text      string
+	lastFocus tview.Primitive
 }
 
 func NewNotification(app *App) *Notification {
@@ -37,6 +38,19 @@ func (n *Notification) SetContent(title string, text string) {
 	n.refresh()
 }
 
+func (n *Notification) Show() {
+	// save last focused element
+	n.lastFocus = n.app.GetFocus()
+
+	n.Display(true)
+	n.app.SetFocus(n)
+}
+
+func (n *Notification) Hide() {
+	n.Display(false)
+	n.app.SetFocus(n.lastFocus)
+}
+
 func (n *Notification) initLayout() {
 	s := n.app.config.Style()
 
@@ -52,7 +66,7 @@ func (n *Notification) initKeymap() {
 		key := util.AsKey(event)
 		switch key {
 		case tcell.KeyEsc, tcell.KeyEnter, util.KeySpace:
-			n.app.root.HideNotification()
+			n.Hide()
 			return nil
 		default:
 			return event

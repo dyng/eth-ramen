@@ -77,9 +77,9 @@ func (a *Account) initLayout() {
 	accountInfo := &AccountInfo{
 		Flex:        tview.NewFlex(),
 		avatar:      util.NewAvatar(style.AvatarSize),
-		address:     util.NewSectionWithColor("Address", s.SectionColor, util.NAValue, s.FgColor),
-		accountType: util.NewSectionWithColor("Type", s.SectionColor, util.NAValue, s.FgColor),
-		balance:     util.NewSectionWithColor("Balance", s.SectionColor, util.NAValue, s.FgColor),
+		address:     util.NewSectionWithStyle("Address", util.NAValue, s),
+		accountType: util.NewSectionWithStyle("Type", util.NAValue, s),
+		balance:     util.NewSectionWithStyle("Balance", util.NAValue, s),
 	}
 
 	info := tview.NewTable()
@@ -146,49 +146,16 @@ func (a *Account) KeyMaps() util.KeyMaps {
 }
 
 func (a *Account) ShowMethodCallDialog() {
-	log.Debug("Show methodCall dialog")
-
 	if !a.account.IsContract() {
 		return
 	}
-
-	if !a.methodCall.IsDisplay() {
-		a.methodCall.Clear()
-		a.methodCall.Display(true)
-	}
-
-	a.app.SetFocus(a.methodCall)
-}
-
-func (a *Account) HideMethodCallDialog() {
-	log.Debug("Hide methodCall dialog")
-
-	if a.methodCall.IsDisplay() {
-		a.methodCall.Display(false)
-	}
-
-	a.app.SetFocus(a)
+	a.methodCall.Clear()
+	a.methodCall.Show()
 }
 
 func (a *Account) ShowImportABIDialog() {
-	log.Debug("Show importABI dialog")
-
-	if !a.importABI.IsDisplay() {
-		a.importABI.Clear()
-		a.importABI.Display(true)
-	}
-
-	a.app.SetFocus(a.importABI)
-}
-
-func (a *Account) HideImportABIDialog() {
-	log.Debug("Hide importABI dialog")
-
-	if a.importABI.IsDisplay() {
-		a.importABI.Display(false)
-	}
-
-	a.app.SetFocus(a)
+	a.importABI.Clear()
+	a.importABI.Show()
 }
 
 func (a *Account) onNewBlock(block *common.Block) {

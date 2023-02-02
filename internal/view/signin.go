@@ -10,14 +10,15 @@ import (
 
 type SignInDialog struct {
 	*tview.InputField
-	app     *App
-	display bool
+	app       *App
+	display   bool
+	lastFocus tview.Primitive
 }
 
 func NewSignInDialog(app *App) *SignInDialog {
 	d := &SignInDialog{
-		app:        app,
-		display:    false,
+		app:     app,
+		display: false,
 	}
 
 	// setup layout
@@ -45,7 +46,8 @@ func (d *SignInDialog) initLayout() {
 func (d *SignInDialog) handleKey(key tcell.Key) {
 	switch key {
 	case tcell.KeyEnter:
-		d.app.root.HideSignInDialog()
+		// close dialog at first
+		d.Hide()
 
 		privateKey := d.GetText()
 		if privateKey != "" {
@@ -58,8 +60,21 @@ func (d *SignInDialog) handleKey(key tcell.Key) {
 			}
 		}
 	case tcell.KeyEsc:
-		d.app.root.HideSignInDialog()
+		d.Hide()
 	}
+}
+
+func (d *SignInDialog) Show() {
+	// save last focused element
+	d.lastFocus = d.app.GetFocus()
+
+	d.Display(true)
+	d.app.SetFocus(d)
+}
+
+func (d *SignInDialog) Hide() {
+	d.Display(false)
+	d.app.SetFocus(d.lastFocus)
 }
 
 func (d *SignInDialog) Clear() {

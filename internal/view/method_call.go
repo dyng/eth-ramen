@@ -20,11 +20,12 @@ type MethodCallDialog struct {
 	app     *App
 	display bool
 
-	methods  *tview.Table
-	args     *tview.Form
-	result   *tview.TextView
-	focusIdx int
-	spinner  *util.Spinner
+	methods   *tview.Table
+	args      *tview.Form
+	result    *tview.TextView
+	focusIdx  int
+	spinner   *util.Spinner
+	lastFocus tview.Primitive
 
 	contract *service.Contract
 }
@@ -115,7 +116,7 @@ func (d *MethodCallDialog) initLayout() {
 	whole.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		key := util.AsKey(event)
 		if key == tcell.KeyEscape {
-			d.app.root.account.HideMethodCallDialog()
+			d.Hide()
 			return nil
 		} else {
 			return event
@@ -128,6 +129,19 @@ func (d *MethodCallDialog) initLayout() {
 func (d *MethodCallDialog) SetContract(contract *service.Contract) {
 	d.contract = contract
 	d.refresh()
+}
+
+func (d *MethodCallDialog) Show() {
+	// save last focused element
+	d.lastFocus = d.app.GetFocus()
+
+	d.Display(true)
+	d.app.SetFocus(d)
+}
+
+func (d *MethodCallDialog) Hide() {
+	d.Display(false)
+	d.app.SetFocus(d.lastFocus)
 }
 
 func (d *MethodCallDialog) Clear() {
@@ -171,7 +185,7 @@ func (d *MethodCallDialog) sortedMethods() []abi.Method {
 	}
 
 	sort.Slice(sorted, func(i, j int) bool {
-		m1 := sorted[i] 
+		m1 := sorted[i]
 		m2 := sorted[j]
 
 		if m1.IsConstant() {
@@ -195,8 +209,7 @@ func (d *MethodCallDialog) sortedMethods() []abi.Method {
 func (d *MethodCallDialog) showArguments() {
 	d.args.Clear(true)
 
-	row, _ := d.methods.GetSelection()
-	methodName := d.methods.GetCell(row, 0).Text
+	methodName := d.methodSelected()
 	method := d.contract.GetABI().Methods[methodName]
 	for _, arg := range method.Inputs {
 		argName := arg.Name
@@ -227,8 +240,13 @@ func (d *MethodCallDialog) atLastFormItem() bool {
 	return d.focusIdx >= d.args.GetFormItemCount()
 }
 
+func (d *MethodCallDialog) methodSelected() string {
+	row, _ := d.methods.GetSelection()
+	return d.methods.GetCell(row, 0).Text
+}
+
 func (d *MethodCallDialog) methodHasNoArg() bool {
-	methodName := d.methods.GetCell(d.methods.GetSelection()).Text
+	methodName := d.methodSelected()
 	method := d.contract.GetABI().Methods[methodName]
 	return len(method.Inputs) == 0
 }
@@ -237,7 +255,7 @@ func (d *MethodCallDialog) callMethod() {
 	// start calling
 	d.spinner.StartAndShow()
 
-	methodName := d.methods.GetCell(d.methods.GetSelection()).Text
+	methodName := d.methodSelected()
 	method := d.contract.GetABI().Methods[methodName]
 
 	// unpack arguments
@@ -252,6 +270,7 @@ func (d *MethodCallDialog) callMethod() {
 			log.Error("Cannot unpack argument", "argument", arg, "input", item.GetText(), "error", err)
 			d.app.root.NotifyError(format.FineErrorMessage(
 				"Input type for argument '%s' is incorrect, should be '%s'.", arg.Name, arg.Type.String(), err))
+			d.spinner.StopAndHide()
 			return
 		}
 	}
@@ -261,10 +280,13 @@ func (d *MethodCallDialog) callMethod() {
 	if !method.IsConstant() {
 		signer = d.app.root.signer.GetSigner()
 		if signer == nil {
-			d.app.root.NotifyError(format.FineErrorMessage(""))
+			d.app.root.NotifyError(format.FineErrorMessage("Cannot call a non-constant method without a signer. Please signin at first."))
+			d.spinner.StopAndHide()
 			return
 		}
 	}
+
+	log.Info("Invoke contract method", "contract", d.contract.GetAddress(), "method", methodName, "args", args)
 
 	go func() {
 		var res []any
@@ -275,7 +297,7 @@ func (d *MethodCallDialog) callMethod() {
 		} else {
 			// FIXME: waiting for transaction executed
 			hash, e := d.contract.Transact(signer, methodName, args...)
-			res = []any{fmt.Sprintf("Submitted! TxnHash: %s", hash)}
+			res = []any{fmt.Sprintf("Transaction has been submitted to network.\n\nTxnHash: %s", hash)}
 			err = e
 		}
 

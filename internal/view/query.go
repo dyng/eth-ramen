@@ -11,16 +11,17 @@ import (
 
 type QueryDialog struct {
 	*tview.InputField
-	app     *App
-	display bool
-	spinner *util.Spinner
+	app       *App
+	display   bool
+	lastFocus tview.Primitive
+	spinner   *util.Spinner
 }
 
 func NewQueryDialog(app *App) *QueryDialog {
 	query := &QueryDialog{
-		app:        app,
-		display:    false,
-		spinner:    util.NewSpinner(app.Application),
+		app:     app,
+		display: false,
+		spinner: util.NewSpinner(app.Application),
 	}
 
 	// setup layout
@@ -53,12 +54,12 @@ func (d *QueryDialog) handleKey(key tcell.Key) {
 		d.spinner.StartAndShow()
 
 		address := d.GetText()
-		query := func() {
+		go func() {
 			if address != "" {
 				account, err := d.app.service.GetAccount(address)
 				d.app.QueueUpdateDraw(func() {
 					d.spinner.StopAndHide()
-					d.app.root.HideQueryDialog()
+					d.Hide()
 
 					if err != nil {
 						log.Error("Failed to fetch account of given address",
@@ -70,11 +71,23 @@ func (d *QueryDialog) handleKey(key tcell.Key) {
 					}
 				})
 			}
-		}
-		go query()
+		}()
 	case tcell.KeyEsc:
-		d.app.root.HideQueryDialog()
+		d.Hide()
 	}
+}
+
+func (d *QueryDialog) Show() {
+	// save last focused element
+	d.lastFocus = d.app.GetFocus()
+
+	d.Display(true)
+	d.app.SetFocus(d)
+}
+
+func (d *QueryDialog) Hide() {
+	d.Display(false)
+	d.app.SetFocus(d.lastFocus)
 }
 
 func (d *QueryDialog) Clear() {
