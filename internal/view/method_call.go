@@ -2,12 +2,14 @@ package view
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/dyng/ramen/internal/common/conv"
 	"github.com/dyng/ramen/internal/service"
 	"github.com/dyng/ramen/internal/view/format"
 	"github.com/dyng/ramen/internal/view/style"
 	"github.com/dyng/ramen/internal/view/util"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/log"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -146,20 +148,55 @@ func (d *MethodCallDialog) showMethodList() {
 
 	s := d.app.config.Style()
 	row := 0
-	for name, method := range d.contract.GetABI().Methods {
-		color := s.FgColor
-		if !method.IsConstant() {
-			color = tcell.ColorCrimson
+	for _, method := range d.sortedMethods() {
+		if method.IsConstant() {
+			color := s.FgColor
+			d.methods.SetCell(row, 0, tview.NewTableCell(method.Name).SetTextColor(color).SetExpansion(1))
+			d.methods.SetCell(row, 1, tview.NewTableCell(" ").SetTextColor(color))
+		} else {
+			color := tcell.ColorDarkRed
+			d.methods.SetCell(row, 0, tview.NewTableCell(method.Name).SetExpansion(1).SetBackgroundColor(color))
+			d.methods.SetCell(row, 1, tview.NewTableCell("⚠").SetBackgroundColor(color))
 		}
-		d.methods.SetCell(row, 0, tview.NewTableCell(name).SetTextColor(color))
 		row++
 	}
+}
+
+// sortedMethods returns a list of method sorted by name and purity
+func (d *MethodCallDialog) sortedMethods() []abi.Method {
+	methods := d.contract.GetABI().Methods
+	sorted := make([]abi.Method, 0)
+	for _, m := range methods {
+		sorted = append(sorted, m)
+	}
+
+	sort.Slice(sorted, func(i, j int) bool {
+		m1 := sorted[i] 
+		m2 := sorted[j]
+
+		if m1.IsConstant() {
+			if m2.IsConstant() {
+				return m1.Name < m2.Name
+			} else {
+				return true
+			}
+		} else {
+			if m2.IsConstant() {
+				return false
+			} else {
+				return m1.Name < m2.Name
+			}
+		}
+	})
+
+	return sorted
 }
 
 func (d *MethodCallDialog) showArguments() {
 	d.args.Clear(true)
 
-	methodName := d.methods.GetCell(d.methods.GetSelection()).Text
+	row, _ := d.methods.GetSelection()
+	methodName := d.methods.GetCell(row, 0).Text
 	method := d.contract.GetABI().Methods[methodName]
 	for _, arg := range method.Inputs {
 		argName := arg.Name

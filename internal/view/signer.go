@@ -77,7 +77,7 @@ func (si *Signer) refresh() {
 }
 
 func (si *Signer) layoutNoSigner() {
-	cell := tview.NewTableCell("[crimson]Not Signed In[-]")
+	cell := tview.NewTableCell("[dimgrey]Not Signed In[-]")
 	cell.SetAlign(tview.AlignLeft)
 	cell.SetExpansion(1)
 	si.table.SetCell(0, 0, cell)
