@@ -1,7 +1,11 @@
 package service
 
 import (
+	"math/big"
+	"sync/atomic"
+
 	"github.com/dyng/ramen/internal/common"
+	"github.com/ethereum/go-ethereum/log"
 )
 
 const (
@@ -22,6 +26,7 @@ func (at AccountType) String() string {
 type Account struct {
 	service *Service
 	address common.Address
+	balance atomic.Pointer[big.Int]
 	code    []byte // byte code of this account, nil if account is an EOA.
 }
 
@@ -49,9 +54,35 @@ func (a *Account) AsContract() (*Contract, error) {
 	return a.service.ToContract(a)
 }
 
-// GetBalance returns current balance of this account.
-func (a *Account) GetBalance() (common.BigInt, error) {
-	return a.service.provider.GetBalance(a.address)
+// GetBalance returns cached balance of this account.
+func (a *Account) GetBalance() common.BigInt {
+	// FIXME: race condition
+	if a.balance.Load() == nil {
+		bal, err := a.GetBalanceForce()
+		if err != nil {
+			log.Error("Failed to fetch balance", "address", a.address, "error", err)
+		}
+		return bal
+	} else {
+		return a.balance.Load()
+	}
+}
+
+// GetBalanceForce will query for current account's balance, store it in cache and return.
+func (a *Account) GetBalanceForce() (common.BigInt, error) {
+	bal, err := a.service.provider.GetBalance(a.address)
+	if err == nil {
+		a.balance.Swap(bal)
+	} else {
+		bal = big.NewInt(0) // use 0 as fallback value
+	}
+	return bal, err
+}
+
+// UpdateBalance will update cache of current account's balance
+func (a *Account) UpdateBalance() bool {
+	_, err := a.GetBalanceForce()
+	return err == nil
 }
 
 // GetTransactions returns transactions of this account.

@@ -11,10 +11,9 @@ import (
 
 type QueryDialog struct {
 	*tview.InputField
-	app       *App
-	display   bool
-	lastFocus tview.Primitive
-	spinner   *util.Spinner
+	app     *App
+	display bool
+	spinner *util.Spinner
 }
 
 func NewQueryDialog(app *App) *QueryDialog {
@@ -59,6 +58,7 @@ func (d *QueryDialog) handleKey(key tcell.Key) {
 
 		go func() {
 			account, err := d.app.service.GetAccount(address)
+			account.UpdateBalance() // populate balance cache
 			d.app.QueueUpdateDraw(func() {
 				if err != nil {
 					d.Finished() // must stop loading animation before show error message
@@ -79,16 +79,13 @@ func (d *QueryDialog) handleKey(key tcell.Key) {
 }
 
 func (d *QueryDialog) Show() {
-	// save last focused element
-	d.lastFocus = d.app.GetFocus()
-
 	d.Display(true)
 	d.app.SetFocus(d)
 }
 
 func (d *QueryDialog) Hide() {
 	d.Display(false)
-	d.app.SetFocus(d.lastFocus)
+	d.app.SetFocus(d.app.root)
 }
 
 // Loading will set the location of spinner and show it

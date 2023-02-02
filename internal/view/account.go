@@ -183,12 +183,8 @@ func (a *Account) refresh() {
 	a.accountInfo.avatar.SetAddress(addr)
 
 	// fetch balance
-	bal, err := a.account.GetBalance()
-	if err == nil {
-		a.accountInfo.balance.SetText(conv.ToEther(bal).String())
-	} else {
-		log.Error("Failed to fetch account balance", "account", addr, "error", err)
-	}
+	bal := a.account.GetBalance()
+	a.accountInfo.balance.SetText(conv.ToEther(bal).String())
 
 	// update transaction history asynchronously
 	a.transactionList.LoadAsync(a.account.GetTransactions)

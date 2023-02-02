@@ -223,12 +223,8 @@ func (s *SenderFormItem) SetSender(account *service.Signer) {
 	s.address.SetText(addr.Hex())
 
 	// balance
-	bal, err := account.GetBalance()
-	if err == nil {
-		s.balance.SetText(conv.ToEther(bal).String())
-	} else {
-		log.Error("Failed to fetch account balance", "account", addr, "error", err)
-	}
+	bal := account.GetBalance()
+	s.balance.SetText(conv.ToEther(bal).String())
 }
 
 // Focus implements tview.Primitive

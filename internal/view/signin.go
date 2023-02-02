@@ -59,6 +59,7 @@ func (d *SignInDialog) handleKey(key tcell.Key) {
 
 		go func() {
 			signer, err := d.app.service.GetSigner(privateKey)
+			signer.UpdateBalance() // populate balance cache
 			d.app.QueueUpdateDraw(func() {
 				if err != nil {
 					d.Finished()

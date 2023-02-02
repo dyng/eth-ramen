@@ -117,7 +117,7 @@ func (t *TransactionList) LoadAsync(loader func() (common.Transactions, error)) 
 	t.loader.Start()
 	t.loader.Display(true)
 
-	load := func() {
+	go func(){
 		txns, err := loader()
 		t.app.QueueUpdateDraw(func() {
 			// stop loading animation
@@ -133,9 +133,7 @@ func (t *TransactionList) LoadAsync(loader func() (common.Transactions, error)) 
 				t.app.root.NotifyError(format.FineErrorMessage("Error occurs when loading transactions.", err))
 			}
 		})
-	}
-
-	go load()
+	}()
 }
 
 func (t *TransactionList) Clear() {

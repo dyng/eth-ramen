@@ -5,7 +5,6 @@ import (
 	"github.com/dyng/ramen/internal/service"
 	"github.com/dyng/ramen/internal/view/style"
 	"github.com/dyng/ramen/internal/view/util"
-	"github.com/ethereum/go-ethereum/log"
 	"github.com/rivo/tview"
 )
 
@@ -68,12 +67,8 @@ func (si *Signer) refresh() {
 	si.address.SetText(addr.Hex())
 
 	// update balance
-	bal, err := current.GetBalance()
-	if err == nil {
-		si.balance.SetText(conv.ToEther(bal).String())
-	} else {
-		log.Error("Failed to fetch account balance", "account", addr, "error", err)
-	}
+	bal := current.GetBalance()
+	si.balance.SetText(conv.ToEther(bal).String())
 }
 
 func (si *Signer) layoutNoSigner() {
