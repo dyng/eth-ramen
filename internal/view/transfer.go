@@ -2,7 +2,7 @@ package view
 
 import (
 	"fmt"
-	"strconv"
+	"math/big"
 
 	"github.com/dyng/ramen/internal/common/conv"
 	"github.com/dyng/ramen/internal/service"
@@ -68,16 +68,14 @@ func (d *TransferDialog) initLayout() {
 }
 
 func (d *TransferDialog) initKeymap() {
-	d.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		key := util.AsKey(event)
-		switch key {
-		case tcell.KeyEsc:
-			d.Hide()
-			return nil
-		default:
-			return event
-		}
-	})
+	InitKeymap(d, d.app)
+}
+
+// KeyMaps implements KeymapPrimitive
+func (d *TransferDialog) KeyMaps() util.KeyMaps {
+	keymaps := make(util.KeyMaps, 0)
+	keymaps = append(keymaps, util.NewSimpleKey(tcell.KeyEsc, d.Hide))
+	return keymaps
 }
 
 func (d *TransferDialog) SetSender(account *service.Signer) {
@@ -92,9 +90,9 @@ func (d *TransferDialog) refresh() {
 
 // doTransfer is core method that do the whole things
 func (d *TransferDialog) doTransfer() {
-	i, err := strconv.ParseInt(d.amount.GetText(), 10, 64)
-	if err != nil {
-		d.app.root.NotifyError(format.FineErrorMessage("Cannot parse amount value %s", d.amount.GetText(), err))
+	i, ok := new(big.Float).SetString(d.amount.GetText())
+	if !ok {
+		d.app.root.NotifyError(fmt.Sprintf("Cannot parse amount value %s", d.amount.GetText()))
 		return
 	}
 

@@ -17,12 +17,14 @@ func ToGwei(wei *big.Int) *big.Int {
 }
 
 // FromEther converts values in Ether to wei.
-func FromEther(n int64) *big.Int {
-	return new(big.Int).Mul(big.NewInt(n), big.NewInt(params.Ether))
+func FromEther(n *big.Float) *big.Int {
+	i, _ := new(big.Float).Mul(n, big.NewFloat(params.Ether)).Int(nil)
+	return i
 }
 
 // FromGwei converts values in Gwei to wei.
-func FromGwei(n int64) *big.Int {
-	return new(big.Int).Mul(big.NewInt(n), big.NewInt(params.GWei))
+func FromGwei(n *big.Float) *big.Int {
+	i, _ := new(big.Float).Mul(n, big.NewFloat(params.GWei)).Int(nil)
+	return i
 }
 

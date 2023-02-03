@@ -63,14 +63,34 @@ func (a *App) firstSync() error {
 	a.root.chainInfo.SetNetwork(StyledNetworkName(network))
 
 	// update block height
-	height, err := a.service.GetBlockHeight()
-	if err != nil {
-		log.Error("Failed to fetch block height", "error", err)
-	} else {
-		a.root.chainInfo.SetHeight(height)
-	}
+	go func() {
+		height, err := a.service.GetBlockHeight()
+		if err != nil {
+			log.Error("Failed to fetch block height", "error", err)
+		}
 
-	// show latest transactions
+		price, err := a.service.GetEthPrice()
+		if err != nil {
+			log.Error("Failed to fetch ether's price", "error", err)
+		}
+
+		gasPrice, err := a.service.GetGasPrice()
+		if err != nil {
+			log.Error("Failed to fetch gas price", "error", err)
+		}
+
+		a.QueueUpdateDraw(func() {
+			a.root.chainInfo.SetHeight(height)
+			if price != nil {
+				a.root.chainInfo.SetEthPrice(*price)
+			}
+			if gasPrice != nil {
+				a.root.chainInfo.SetGasPrice(gasPrice)
+			}
+		})
+	}()
+
+	// load newest transactions
 	a.root.home.transactionList.LoadAsync(func() (common.Transactions, error) {
 		netType := a.service.GetNetwork().NetType()
 		if netType == serv.TypeDevnet {

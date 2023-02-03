@@ -62,16 +62,16 @@ func (n *Notification) initLayout() {
 }
 
 func (n *Notification) initKeymap() {
-	n.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		key := util.AsKey(event)
-		switch key {
-		case tcell.KeyEsc, tcell.KeyEnter, util.KeySpace:
-			n.Hide()
-			return nil
-		default:
-			return event
-		}
-	})
+	InitKeymap(n, n.app)
+}
+
+// KeyMaps implements KeymapPrimitive
+func (n *Notification) KeyMaps() util.KeyMaps {
+	keymaps := make(util.KeyMaps, 0)
+	keymaps = append(keymaps, util.NewSimpleKey(tcell.KeyEsc, n.Hide))
+	keymaps = append(keymaps, util.NewSimpleKey(tcell.KeyEnter, n.Hide))
+	keymaps = append(keymaps, util.NewSimpleKey(util.KeySpace, n.Hide))
+	return keymaps
 }
 
 func (n *Notification) refresh() {

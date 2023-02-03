@@ -23,6 +23,14 @@ type (
 	KeyMaps []KeyMap
 )
 
+// NewSimpleKey creates a simple keymap with only key and handler.
+func NewSimpleKey(key tcell.Key, handler func()) KeyMap {
+	return KeyMap{
+		Key:     key,
+		Handler: func(*tcell.EventKey) { handler() },
+	}
+}
+
 func (km KeyMaps) Add(another KeyMaps) KeyMaps {
 	return append(km, another...)
 }

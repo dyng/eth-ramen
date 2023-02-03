@@ -10,12 +10,12 @@ import (
 
 type ImportABIDialog struct {
 	*tview.Flex
-	app     *App
-	display bool
+	app       *App
+	display   bool
 	lastFocus tview.Primitive
 
-	input     *tview.TextArea
-	button    *tview.Button
+	input  *tview.TextArea
+	button *tview.Button
 }
 
 func NewImportABIDialog(app *App) *ImportABIDialog {
@@ -70,19 +70,15 @@ func (d *ImportABIDialog) initLayout() {
 }
 
 func (d *ImportABIDialog) initKeymap() {
-	d.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		key := util.AsKey(event)
-		switch key {
-		case tcell.KeyEsc:
-			d.Hide()
-			return nil
-		case tcell.KeyTab:
-			d.focusNext()
-			return nil
-		default:
-			return event
-		}
-	})
+	InitKeymap(d, d.app)
+}
+
+// KeyMaps implements KeymapPrimitive
+func (d *ImportABIDialog) KeyMaps() util.KeyMaps {
+	keymaps := make(util.KeyMaps, 0)
+	keymaps = append(keymaps, util.NewSimpleKey(tcell.KeyEsc, d.Hide))
+	keymaps = append(keymaps, util.NewSimpleKey(tcell.KeyTab, d.focusNext))
+	return keymaps
 }
 
 func (d *ImportABIDialog) focusNext() {

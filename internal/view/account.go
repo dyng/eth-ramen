@@ -87,12 +87,12 @@ func (a *Account) initLayout() {
 	}
 
 	info := tview.NewTable()
-	accountInfo.address.AddToTable(info, 2, 0)
-	accountInfo.accountType.AddToTable(info, 1, 0)
-	accountInfo.balance.AddToTable(info, 3, 0)
+	accountInfo.accountType.AddToTable(info, 0, 0)
+	accountInfo.address.AddToTable(info, 1, 0)
+	accountInfo.balance.AddToTable(info, 2, 0)
 
-	accountInfo.SetDirection(tview.FlexRow)
-	accountInfo.AddItem(accountInfo.avatar, style.AvatarSize, 0, false)
+	accountInfo.SetDirection(tview.FlexColumn)
+	accountInfo.AddItem(accountInfo.avatar, style.AvatarSize*2+1, 0, false)
 	accountInfo.AddItem(info, 0, 1, false)
 	a.accountInfo = accountInfo
 
@@ -132,7 +132,7 @@ func (a *Account) KeyMaps() util.KeyMaps {
 	// KeyC: call a contract
 	keymaps = append(keymaps, util.KeyMap{
 		Key:         util.KeyC,
-		Shortcut:    "C",
+		Shortcut:    "c",
 		Description: "Call Contract",
 		Handler: func(*tcell.EventKey) {
 			// TODO: don't show "Call Contract" for wallet account
@@ -177,7 +177,7 @@ func (a *Account) onNewBlock(block *common.Block) {
 	a.account.UpdateBalance()
 
 	a.app.QueueUpdateDraw(func() {
-		a.refresh()
+		a.refreshBalance()
 		a.transactionList.FilterAndPrependTransactions(txns)
 	})
 }
@@ -196,6 +196,11 @@ func (a *Account) refresh() {
 
 	// update transaction history asynchronously
 	a.transactionList.LoadAsync(a.account.GetTransactions)
+}
+
+func (a *Account) refreshBalance() {
+	bal := a.account.GetBalance()
+	a.accountInfo.balance.SetText(conv.ToEther(bal).String())
 }
 
 // Primitive Interface Implementation

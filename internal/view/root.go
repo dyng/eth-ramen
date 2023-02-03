@@ -65,9 +65,9 @@ func (r *Root) initLayout() {
 
 	// header
 	header := tview.NewFlex().SetDirection(tview.FlexColumn)
-	header.AddItem(chainInfo, 0, 3, false)
-	header.AddItem(signer, 0, 4, false)
-	header.AddItem(help, 0, 3, false)
+	header.AddItem(chainInfo, 0, 6, false)
+	header.AddItem(signer, 0, 6, false)
+	header.AddItem(help, 0, 4, false)
 
 	// body
 	body := tview.NewPages()
@@ -132,7 +132,7 @@ func (r *Root) KeyMaps() util.KeyMaps {
 	// KeyH: back to home
 	keymaps = append(keymaps, util.KeyMap{
 		Key:         util.KeyH,
-		Shortcut:    "H",
+		Shortcut:    "h",
 		Description: "Back to Home",
 		Handler: func(*tcell.EventKey) {
 			r.ShowHomePage()
@@ -142,7 +142,7 @@ func (r *Root) KeyMaps() util.KeyMaps {
 	// KeyS: signin
 	keymaps = append(keymaps, util.KeyMap{
 		Key:         util.KeyS,
-		Shortcut:    "S",
+		Shortcut:    "s",
 		Description: "Sign In",
 		Handler: func(*tcell.EventKey) {
 			r.ShowSignInDialog()
@@ -152,17 +152,17 @@ func (r *Root) KeyMaps() util.KeyMaps {
 	// KeyM: transfer
 	keymaps = append(keymaps, util.KeyMap{
 		Key:         util.KeyM,
-		Shortcut:    "M",
+		Shortcut:    "m",
 		Description: "Transfer",
 		Handler: func(*tcell.EventKey) {
 			r.ShowTransferDialog()
 		},
 	})
 
-	// KeyQ: quit
+	// KeyCtrlC: quit
 	keymaps = append(keymaps, util.KeyMap{
-		Key:         util.KeyQ,
-		Shortcut:    "Q",
+		Key:         tcell.KeyCtrlC,
+		Shortcut:    "ctrl-c",
 		Description: "Quit",
 		Handler: func(*tcell.EventKey) {
 			r.app.Stop()

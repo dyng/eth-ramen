@@ -17,7 +17,6 @@ const (
 
 var (
 	palette = []string{
-		"black",
 		"maroon",
 		"green",
 		"olive",
