@@ -7,6 +7,7 @@ import (
 	conf "github.com/dyng/ramen/internal/config"
 	"github.com/dyng/ramen/internal/view"
 	"github.com/ethereum/go-ethereum/log"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -77,6 +78,9 @@ func NewRootCmd() *cobra.Command {
 }
 
 func run(cmd *cobra.Command, args []string) {
+	// recovery
+	defer logPanicAndExit()
+
 	// setup logger
 	initLogger()
 
@@ -103,4 +107,10 @@ func initLogger() {
 		handler = log.LvlFilterHandler(log.LvlInfo, handler)
 	}
 	log.Root().SetHandler(handler)
+}
+
+func logPanicAndExit() {
+	if r := recover(); r != nil {
+		log.Crit("Unexpected error occurs", "error", errors.Errorf("%v", r))
+	}
 }
