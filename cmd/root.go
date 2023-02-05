@@ -21,6 +21,10 @@ var (
 	rootCmd = NewRootCmd()
 )
 
+func init() {
+	rootCmd.AddCommand(versionCmd())
+}
+
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		log.Crit("Failed to run roo command", "error", err)
@@ -43,21 +47,24 @@ func NewRootCmd() *cobra.Command {
 		false,
 		"Should ramen run in debug mode (default: false)",
 	)
-	flags.StringVar(
+	flags.StringVarP(
 		&config.ConfigFile,
 		"config-file",
+		"c",
 		conf.DefaultConfigFile,
 		"Path to ramen's config file (default: ~/.ramen.json)",
 	)
-	flags.StringVar(
+	flags.StringVarP(
 		&config.Network,
 		"network",
+		"n",
 		conf.DefaultNetwork,
 		"Specify the chain that ramen will connect to (default: mainnet)",
 	)
-	flags.StringVar(
+	flags.StringVarP(
 		&config.Provider,
 		"provider",
+		"p",
 		conf.DefaultProvider,
 		"Specify a blockchain provider (default: alchemy)",
 	)
