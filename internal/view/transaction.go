@@ -78,7 +78,7 @@ func (t *TransactionDetail) KeyMaps() util.KeyMaps {
 	// KeyF: jump to sender's account page
 	keymaps = append(keymaps, util.KeyMap{
 		Key:         util.KeyF,
-		Shortcut:    "F",
+		Shortcut:    "f",
 		Description: "View Sender",
 		Handler: func(*tcell.EventKey) {
 			t.viewAccount(t.from.GetText())
@@ -87,7 +87,7 @@ func (t *TransactionDetail) KeyMaps() util.KeyMaps {
 	// KeyT: jump to receiver's account page
 	keymaps = append(keymaps, util.KeyMap{
 		Key:         util.KeyT,
-		Shortcut:    "T",
+		Shortcut:    "t",
 		Description: "View Receiver",
 		Handler: func(*tcell.EventKey) {
 			t.viewAccount(t.to.GetText())

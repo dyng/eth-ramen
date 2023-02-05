@@ -22,7 +22,9 @@ func InitKeymap(p KeymapPrimitive, app *App) {
 		// do not capture characters for InputField and TextArea
 		switch app.GetFocus().(type) {
 		case *tview.InputField, *tview.TextArea:
-			return event
+			if !IsControlKey(event) {
+				return event
+			}
 		}
 
 		handler, ok := keymaps.FindHandler(util.AsKey(event))
@@ -33,6 +35,18 @@ func InitKeymap(p KeymapPrimitive, app *App) {
 			return event
 		}
 	})
+}
+
+// IsControlKey returns true if the key is a control key.
+func IsControlKey(evt *tcell.EventKey) bool {
+	if evt.Modifiers() & tcell.ModCtrl != 0 {
+		return true
+	}
+	switch evt.Key() {
+	case tcell.KeyEsc, tcell.KeyTab:
+		return true
+	}
+	return false
 }
 
 func Inc(i *int) int {
