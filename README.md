@@ -2,23 +2,41 @@
 
 Ramen is a good-old terminal UI to interact with [Ethereum Network](https://ethereum.org/en/). It allows you to observe latest chain status, check account's balance and transaction history, navigate blocks and transactions, view smart contract's source code or call its functions, and many things more!
 
-1. View account balance, transactions etc.
+Here are some demos:
 
-    <img src="https://user-images.githubusercontent.com/1492050/215658150-93b09da7-52b2-4366-ba24-4a56668cf2a8.png"/>
+1. View accounts and transactions
+
+    <img src="https://user-images.githubusercontent.com/1492050/216865651-68cd8b03-0e59-498f-949c-dbe17d716971.gif"/>
 
 2. Call contract's function
 
-    <img src="https://user-images.githubusercontent.com/1492050/215658167-b38bcf0b-8dd4-4b95-8198-5411fe3fd7e0.png"/>
+    <img src="https://user-images.githubusercontent.com/1492050/216875945-29778c9b-3eb7-4a51-8318-1f4fde323f47.gif"/>
 
-Additionally, Ramen is also well designed for smart contract development. Ramen can connect to a local chain (such as the one provided by Hardhat) to view transaction history of smart contract in development, call functions for testing, or verify its storage. Just works like Etherscan, but for your own chain!
+3. Sign in and transfer ethers
+
+    <img src="https://user-images.githubusercontent.com/1492050/216867640-6feff25e-c768-4d71-b981-77e7ef6a585c.gif"/>
+
+Additionally, **Ramen is also well designed for smart contract development**. Ramen can connect to a local chain (such as the one provided by Hardhat) to view transaction history of smart contract in development, call functions for testing, or verify its storage. Just works like Etherscan, but for your own chain!
 
 ## Installation
 
-**Currently Ramen is under active development and its interface, key-bindings, configurations are subject to change.**
+### Using Package Manager
 
-As a result, you can install Ramen only by building from source at this moment.
+#### Homebrew
+
+```shell
+brew tap dyng/ramen && brew install ramen
+```
+
+More package managers are coming soon!
+
+### Using Prebuilt Binaries
+
+You can choose and download the prebuilt binary for your platform from [release page](https://github.com/dyng/ramen/releases).
 
 ### Building From Source
+
+If you want to experience the latest features, and don't mind the risk of running an unstable version, you can build Ramen from source.
 
 1. Clone repository
 
@@ -34,7 +52,7 @@ As a result, you can install Ramen only by building from source at this moment.
 
 ## Quick Start
 
-Ramen requires an Ethereum [JSON-RPC](https://ethereum.org/en/developers/docs/apis/json-rpc/) provider to communicate with Ethereum network. Currently only Alchemy and local node is supported by Ramen. Other providers will be added soon.
+Ramen requires an Ethereum [JSON-RPC](https://ethereum.org/en/developers/docs/apis/json-rpc/) provider to communicate with Ethereum network. Currently only Alchemy and local node is supported by Ramen. More providers will be added soon.
 
 In addition to the Ethereum JSON-RPC provider, Ramen also relies on the Etherscan API to access certain information that is not easily obtainable through the JSON-RPC alone, such as transaction histories and ETH prices.
 
@@ -52,14 +70,14 @@ When the API keys are ready, you can create a configuration file `.ramen.json` i
 }
 ```
 
-Then you can launch Ramen now.
+Then you can start Ramen by running the following command:
 
 ```shell
 # connect to Mainnet
-./ramen --network "mainnet"
+./ramen --network mainnet
 
 # connect to Goerli Testnet
-./ramen --network "goerli"
+./ramen --network goerli
 ```
 
 ### Key Bindings
@@ -77,12 +95,16 @@ Ramen inherits key bindings from underlying UI framework [tview](https://github.
 [Hardhat](https://hardhat.org/) / [Ganache](https://trufflesuite.com/ganache/) provides a local Ethereum network for development purpose. Ramen can be used as an user interface for these local networks.
 
 ```shell
-./ramen --provider "local"
+./ramen -provider local
 ```
 
 ## Contribution
 
 Ramen is an open source project, any kind of contribution is welcome! Feel free to open issues for feature request, bug report or discussions.
+
+## Special Thanks
+
+Ramen is built on top of many great open source projects, special thanks to [k9s](https://github.com/derailed/k9s) and [podman-tui](https://github.com/containers/podman-tui) for inspiration.
 
 ## License
 
