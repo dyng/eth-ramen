@@ -6,15 +6,15 @@ Here are some demos:
 
 1. View accounts and transactions
 
-    <img src="https://user-images.githubusercontent.com/1492050/216865651-68cd8b03-0e59-498f-949c-dbe17d716971.gif"/>
+    <img src="https://user-images.githubusercontent.com/1492050/216913618-9d9d708a-d350-442d-83c2-3a6c7a77614f.gif"/>
 
 2. Call contract's function
 
-    <img src="https://user-images.githubusercontent.com/1492050/216875945-29778c9b-3eb7-4a51-8318-1f4fde323f47.gif"/>
+    <img src="https://user-images.githubusercontent.com/1492050/216915763-f6c429a5-f980-4dcc-87ac-77b6cd65b62a.gif"/>
 
 3. Sign in and transfer ethers
 
-    <img src="https://user-images.githubusercontent.com/1492050/216867640-6feff25e-c768-4d71-b981-77e7ef6a585c.gif"/>
+    <img src="https://user-images.githubusercontent.com/1492050/216917516-8cf8b02b-ba95-466a-ac6c-450f53b7f6e4.gif"/>
 
 Additionally, **Ramen is also well designed for smart contract development**. Ramen can connect to a local chain (such as the one provided by Hardhat) to view transaction history of smart contract in development, call functions for testing, or verify its storage. Just works like Etherscan, but for your own chain!
 
