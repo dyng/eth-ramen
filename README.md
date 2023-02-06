@@ -98,9 +98,15 @@ Ramen inherits key bindings from underlying UI framework [tview](https://github.
 ./ramen -provider local
 ```
 
-## Contribution
+## Troubleshoting
 
-Ramen is an open source project, any kind of contribution is welcome! Feel free to open issues for feature request, bug report or discussions.
+If you come across some problems when using Ramen, at first please check the log file `/tmp/ramen.log` to see if there are any error messages. You can also run Ramen in debug mode with command:
+
+```shell
+ramen --debug
+```
+
+If you still can't figure out the problem, please open an issue on [GitHub](https://github.com/dyng/ramen/issues/new)
 
 ## Special Thanks
 
