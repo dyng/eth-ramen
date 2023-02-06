@@ -77,7 +77,8 @@ func NewProvider(url string, providerType string) *Provider {
 
 	rpcClient, err := rpc.Dial(url)
 	if err != nil {
-		log.Crit("Cannot connect to rpc server", "url", url, "error", errors.WithStack(err))
+		log.Error("Cannot connect to rpc server", "url", url, "error", errors.WithStack(err))
+		common.Exit("Cannot connect to rpc server %s: %v", url, err)
 	}
 
 	p.rpcClient = rpcClient

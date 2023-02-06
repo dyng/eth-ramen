@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/dyng/ramen/internal/common"
 	"github.com/dyng/ramen/internal/view/style"
 	"github.com/pkg/errors"
 )
@@ -54,6 +55,7 @@ func ParseConfig(config *Config) error {
 	bytes, err := os.ReadFile(path)
 	if err != nil {
 		if os.IsNotExist(err) {
+			common.PrintMessage("Warning: config file %s does not exist. Create your own config file is highly recommended.", path)
 			return nil
 		} else {
 			return errors.WithStack(err)
@@ -76,6 +78,16 @@ func ParseConfig(config *Config) error {
 	}
 	if configJson.EtherscanApiKey != nil && config.EtherscanApiKey == "" {
 		config.EtherscanApiKey = *configJson.EtherscanApiKey
+	}
+
+	return nil
+}
+
+// Validate validates the configuration.
+func (c *Config) Validate() error {
+	// validate ApiKey
+	if c.ApiKey == "" && c.Provider != "local" {
+		return errors.New("ApiKey is required for non-local provider")
 	}
 
 	return nil

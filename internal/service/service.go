@@ -25,13 +25,15 @@ var chainMap map[string]Network
 func init() {
 	bytes, err := chainFile.ReadFile("data/chains.json")
 	if err != nil {
-		log.Crit("Cannot read chains.json", "error", errors.WithStack(err))
+		log.Error("Cannot read chains.json", "error", errors.WithStack(err))
+		common.Exit("Cannot read chains.json: %v", err)
 	}
 
 	var networks []Network
 	err = json.Unmarshal(bytes, &networks)
 	if err != nil {
-		log.Crit("Cannot parse chains.json", "error", errors.WithStack(err))
+		log.Error("Cannot parse chains.json", "error", errors.WithStack(err))
+		common.Exit("Cannot parse chains.json: %v", err)
 	}
 
 	cache := make(map[string]Network)

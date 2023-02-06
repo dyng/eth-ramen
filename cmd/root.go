@@ -27,7 +27,7 @@ func init() {
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		log.Crit("Failed to run roo command", "error", err)
+		common.Exit("Root command failed: %v", err)
 	}
 }
 
@@ -45,40 +45,40 @@ func NewRootCmd() *cobra.Command {
 		&config.DebugMode,
 		"debug",
 		false,
-		"Should ramen run in debug mode (default: false)",
+		"Should ramen run in debug mode",
 	)
 	flags.StringVarP(
 		&config.ConfigFile,
 		"config-file",
 		"c",
 		conf.DefaultConfigFile,
-		"Path to ramen's config file (default: ~/.ramen.json)",
+		"Path to ramen's config file",
 	)
 	flags.StringVarP(
 		&config.Network,
 		"network",
 		"n",
 		conf.DefaultNetwork,
-		"Specify the chain that ramen will connect to (default: mainnet)",
+		"Specify the chain that ramen will connect to",
 	)
 	flags.StringVarP(
 		&config.Provider,
 		"provider",
 		"p",
 		conf.DefaultProvider,
-		"Specify a blockchain provider (default: alchemy)",
+		"Specify a blockchain provider",
 	)
 	flags.StringVar(
 		&config.ApiKey,
 		"apikey",
 		"",
-		"ApiKey for specified Ethereum JSON-RPC provider (required, default: empty)",
+		"ApiKey for specified Ethereum JSON-RPC provider",
 	)
 	flags.StringVar(
 		&config.EtherscanApiKey,
 		"etherscan-apikey",
 		"",
-		"ApiKey for Etherscan API (required, default: empty)",
+		"ApiKey for Etherscan API",
 	)
 
 	return &cmd
@@ -94,7 +94,13 @@ func run(cmd *cobra.Command, args []string) {
 	// read and parse configurations from config file 
 	err := conf.ParseConfig(config)
 	if err != nil {
-		log.Crit("Error occurs during parsing config file", "error", err)
+		common.Exit("Cannot parse config file: %v", err)
+	}
+
+	// validate config
+	err = config.Validate()
+	if err != nil {
+		common.Exit("Invalid config: %v", err)
 	}
 
 	// start application
@@ -102,9 +108,11 @@ func run(cmd *cobra.Command, args []string) {
 }
 
 func initLogger() {
-	file, err := os.OpenFile("/tmp/ramen.log", os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0666)
+	// FIXME: use log file in config
+	path := "/tmp/ramen.log"
+	file, err := os.OpenFile(path, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
-		log.Crit("Failed to create log file", "error", err)
+		common.Exit("Cannot create log file at path %s: %v", path, err)
 	}
 
 	handler := common.ErrorStackHandler(log.StreamHandler(file, log.TerminalFormat(false)))
@@ -118,6 +126,7 @@ func initLogger() {
 
 func logPanicAndExit() {
 	if r := recover(); r != nil {
-		log.Crit("Unexpected error occurs", "error", errors.Errorf("%v", r))
+		log.Error("Unexpected error occurs", "error", errors.Errorf("%v", r))
+		common.Exit("Exit due to unexpected error: %v", r)
 	}
 }

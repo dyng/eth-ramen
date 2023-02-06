@@ -158,7 +158,8 @@ type Avatar struct {
 func NewAvatar(size int) *Avatar {
 	ig, err := identicon.New("ramen", size, 3)
 	if err != nil {
-		log.Crit("Failed to create identicon generator", "error", errors.WithStack(err))
+		log.Error("Failed to create identicon generator", "error", errors.WithStack(err))
+		common.Exit("Cannot create identicon generator: %v", err)
 	}
 
 	return &Avatar{

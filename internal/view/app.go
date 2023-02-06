@@ -45,7 +45,8 @@ func (a *App) Start() error {
 	// first synchronization at startup
 	err := a.firstSync()
 	if err != nil {
-		log.Crit("Failed to synchronize chain info", "error", err)
+		log.Error("Failed to synchronize chain info", "error", err)
+		common.Exit("Failed to synchronize chain info: %v", err)
 	}
 
 	// show homepage
