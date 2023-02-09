@@ -44,16 +44,20 @@ func (n *Notification) SetContent(title string, text string) {
 }
 
 func (n *Notification) Show() {
-	// save last focused element
-	n.lastFocus = n.app.GetFocus()
+	if !n.display {
+		// save last focused element
+		n.lastFocus = n.app.GetFocus()
 
-	n.Display(true)
-	n.app.SetFocus(n)
+		n.Display(true)
+		n.app.SetFocus(n)
+	}
 }
 
 func (n *Notification) Hide() {
-	n.Display(false)
-	n.app.SetFocus(n.lastFocus)
+	if n.display {
+		n.Display(false)
+		n.app.SetFocus(n.lastFocus)
+	}
 }
 
 func (n *Notification) initLayout() {

@@ -79,13 +79,17 @@ func (d *QueryDialog) handleKey(key tcell.Key) {
 }
 
 func (d *QueryDialog) Show() {
-	d.Display(true)
-	d.app.SetFocus(d)
+	if !d.display {
+		d.Display(true)
+		d.app.SetFocus(d)
+	}
 }
 
 func (d *QueryDialog) Hide() {
-	d.Display(false)
-	d.app.SetFocus(d.app.root)
+	if d.display {
+		d.Display(false)
+		d.app.SetFocus(d.app.root)
+	}
 }
 
 // Loading will set the location of spinner and show it

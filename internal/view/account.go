@@ -117,8 +117,8 @@ func (a *Account) initLayout() {
 	flex.SetBorderColor(s.BorderColor)
 	flex.SetTitleColor(s.TitleColor)
 	flex.SetDirection(tview.FlexRow)
-	flex.AddItem(accountInfo, 0, 3, false)
-	flex.AddItem(transactions, 0, 7, true)
+	flex.AddItem(accountInfo, 0, 2, false)
+	flex.AddItem(transactions, 0, 8, true)
 	a.Flex = flex
 }
 

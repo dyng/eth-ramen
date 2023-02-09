@@ -119,16 +119,20 @@ func (d *TransferDialog) doTransfer() {
 }
 
 func (d *TransferDialog) Show() {
-	// save last focused element
-	d.lastFocus = d.app.GetFocus()
+	if !d.display {
+		// save last focused element
+		d.lastFocus = d.app.GetFocus()
 
-	d.Display(true)
-	d.app.SetFocus(d)
+		d.Display(true)
+		d.app.SetFocus(d)
+	}
 }
 
 func (d *TransferDialog) Hide() {
-	d.Display(false)
-	d.app.SetFocus(d.lastFocus)
+	if d.display {
+		d.Display(false)
+		d.app.SetFocus(d.lastFocus)
+	}
 }
 
 func (d *TransferDialog) ClearAndRefresh() {

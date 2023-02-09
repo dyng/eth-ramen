@@ -46,8 +46,7 @@ func (h *Home) initLayout() {
 
 // KeyMaps implements bodyPage
 func (h *Home) KeyMaps() util.KeyMaps {
-	keymaps := make(util.KeyMaps, 0)
-	return keymaps
+	return h.transactionList.KeyMaps()
 }
 
 func (h *Home) onNewBlock(block *common.Block) {

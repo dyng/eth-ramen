@@ -81,7 +81,7 @@ func (t *TransactionDetail) KeyMaps() util.KeyMaps {
 		Shortcut:    "f",
 		Description: "View Sender",
 		Handler: func(*tcell.EventKey) {
-			t.viewAccount(t.from.GetText())
+			t.ViewSender()
 		},
 	})
 	// KeyT: jump to receiver's account page
@@ -90,7 +90,7 @@ func (t *TransactionDetail) KeyMaps() util.KeyMaps {
 		Shortcut:    "t",
 		Description: "View Receiver",
 		Handler: func(*tcell.EventKey) {
-			t.viewAccount(t.to.GetText())
+			t.ViewReceiver()
 		},
 	})
 
@@ -100,6 +100,14 @@ func (t *TransactionDetail) KeyMaps() util.KeyMaps {
 func (t *TransactionDetail) SetTransaction(transaction common.Transaction) {
 	t.transaction = transaction
 	t.refresh()
+}
+
+func (t *TransactionDetail) ViewSender() {
+	t.viewAccount(t.from.GetText())
+}
+
+func (t *TransactionDetail) ViewReceiver() {
+	t.viewAccount(t.to.GetText())
 }
 
 func (t *TransactionDetail) refresh() {
