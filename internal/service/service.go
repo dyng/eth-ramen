@@ -4,6 +4,7 @@ import (
 	"embed"
 	"encoding/json"
 	"math/big"
+	"time"
 
 	"github.com/dyng/ramen/internal/common"
 	"github.com/dyng/ramen/internal/common/conv"
@@ -13,6 +14,7 @@ import (
 	gcommon "github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/log"
+	"github.com/patrickmn/go-cache"
 	"github.com/pkg/errors"
 	"github.com/shopspring/decimal"
 )
@@ -48,6 +50,7 @@ type Service struct {
 	config   *conf.Config
 	esclient *etherscan.EtherscanClient
 	provider *provider.Provider
+	cache    *cache.Cache
 }
 
 func NewService(config *conf.Config) *Service {
@@ -55,6 +58,7 @@ func NewService(config *conf.Config) *Service {
 		config:   config,
 		esclient: etherscan.NewEtherscanClient(config.EtherscanEndpoint(), config.EtherscanApiKey),
 		provider: provider.NewProvider(config.Endpoint(), config.Provider),
+		cache:    cache.New(5*time.Minute, 10*time.Minute), // default cache expiration is 5 minutes
 	}
 
 	return &service
@@ -112,7 +116,7 @@ func (s *Service) GetAccount(address string) (*Account, error) {
 	}, nil
 }
 
-// GetLatestTransactions returns transactions of last n blocks. 
+// GetLatestTransactions returns transactions of last n blocks.
 func (s *Service) GetLatestTransactions(n int) (common.Transactions, error) {
 	max, err := s.GetBlockHeight()
 	if err != nil {
@@ -281,11 +285,19 @@ func (s *Service) ToContract(account *Account) (*Contract, error) {
 		return nil, errors.Errorf("Address %s is not a contract account", account.address.Hex())
 	}
 
+	// return cached contract if exists (only use cached abi and source)
+	if contract, found := s.GetCache(account.address); found {
+		c := contract.(*Contract)
+		c.Account = account
+		return c, nil
+	}
+
 	if s.GetNetwork().NetType() == TypeDevnet {
-		// in case of devnet, return a contract skeleton
-		return &Contract{
+		c := &Contract{
 			Account: account,
-		}, nil
+		}
+		s.PutCache(account.address, c, cache.NoExpiration)
+		return c, nil
 	}
 
 	source, abi, err := s.esclient.GetSourceCode(account.address)
@@ -299,9 +311,11 @@ func (s *Service) ToContract(account *Account) (*Contract, error) {
 		}, nil
 	}
 
-	return &Contract{
+	c := &Contract{
 		Account: account,
 		abi:     abi,
 		source:  source,
-	}, nil
+	}
+	s.PutCache(account.address, c, cache.NoExpiration)
+	return c, nil
 }

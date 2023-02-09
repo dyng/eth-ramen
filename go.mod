@@ -6,6 +6,7 @@ require (
 	github.com/asaskevich/EventBus v0.0.0-20200907212545-49d423059eef
 	github.com/ethereum/go-ethereum v1.10.26
 	github.com/gdamore/tcell/v2 v2.5.4
+	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/rivo/tview v0.0.0-20230104153304-892d1a2eb0da
 	github.com/rrivera/identicon v0.0.0-20180626043057-7875f45b0022
