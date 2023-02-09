@@ -8,6 +8,13 @@ import (
 	"github.com/rivo/tview"
 )
 
+const (
+	// importABIDialogMinHeight is the minimum height of the import ABI dialog.
+	importABIDialogMinHeight = 16
+	// importABIDialogMinWidth is the minimum width of the import ABI dialog.
+	importABIDialogMinWidth  = 50
+)
+
 type ImportABIDialog struct {
 	*tview.Flex
 	app       *App
@@ -146,8 +153,11 @@ func (d *ImportABIDialog) Draw(screen tcell.Screen) {
 func (d *ImportABIDialog) SetCentral(x int, y int, width int, height int) {
 	dialogWidth := width - width/2
 	dialogHeight := height - height/2
-	if dialogHeight < 10 {
-		dialogHeight = 10
+	if dialogHeight < importABIDialogMinHeight {
+		dialogHeight = importABIDialogMinHeight
+	}
+	if dialogWidth < importABIDialogMinWidth {
+		dialogWidth = importABIDialogMinWidth
 	}
 	dialogX := x + ((width - dialogWidth) / 2)
 	dialogY := y + ((height - dialogHeight) / 2)

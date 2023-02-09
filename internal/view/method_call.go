@@ -15,6 +15,13 @@ import (
 	"github.com/rivo/tview"
 )
 
+const (
+	// methodCallDialogMinHeight is the minimum height of the method call dialog.
+	methodCallDialogMinHeight = 16
+	// methodCallDialogMinWidth is the minimum width of the method call dialog.
+	methodCallDialogMinWidth  = 80
+)
+
 type MethodCallDialog struct {
 	*tview.Flex
 	app     *App
@@ -276,7 +283,7 @@ func (d *MethodCallDialog) callMethod() {
 	if !method.IsConstant() {
 		signer = d.app.root.signer.GetSigner()
 		if signer == nil {
-			d.app.root.NotifyError(format.FineErrorMessage("Cannot call a non-constant method without a signer. Please signin at first."))
+			d.app.root.NotifyError(format.FineErrorMessage("Cannot call a non-constant method without a signer. Please signin first."))
 			return
 		}
 	}
@@ -293,8 +300,7 @@ func (d *MethodCallDialog) callMethod() {
 		if method.IsConstant() {
 			res, err = d.contract.Call(methodName, args...)
 		} else {
-			// FIXME: waiting for transaction executed
-			hash, e := d.contract.Transact(signer, methodName, args...)
+			hash, e := d.contract.Send(signer, methodName, args...)
 			res = []any{fmt.Sprintf("Transaction has been submitted to network.\n\nTxnHash: %s", hash)}
 			err = e
 		}
@@ -329,6 +335,12 @@ func (d *MethodCallDialog) SetCentral(x int, y int, width int, height int) {
 	// self
 	dialogWidth := width / 2
 	dialogHeight := height / 2
+	if dialogHeight < methodCallDialogMinHeight {
+		dialogHeight = methodCallDialogMinHeight
+	}
+	if dialogWidth < methodCallDialogMinWidth {
+		dialogWidth = methodCallDialogMinWidth
+	}
 	dialogX := x + ((width - dialogWidth) / 2)
 	dialogY := y + ((height - dialogHeight) / 2)
 	d.Flex.SetRect(dialogX, dialogY, dialogWidth, dialogHeight)

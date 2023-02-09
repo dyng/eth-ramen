@@ -95,18 +95,18 @@ Ramen inherits key bindings from underlying UI framework [tview](https://github.
 [Hardhat](https://hardhat.org/) / [Ganache](https://trufflesuite.com/ganache/) provides a local Ethereum network for development purpose. Ramen can be used as an user interface for these local networks.
 
 ```shell
-./ramen -provider local
+./ramen --provider local
 ```
 
 ## Troubleshoting
 
-If you come across some problems when using Ramen, at first please check the log file `/tmp/ramen.log` to see if there are any error messages. You can also run Ramen in debug mode with command:
+If you come across some problems when using Ramen, please check the log file `/tmp/ramen.log` to see if there are any error messages. You can also run Ramen in debug mode with command:
 
 ```shell
 ramen --debug
 ```
 
-If you still can't figure out the problem, please open an issue on [GitHub](https://github.com/dyng/ramen/issues/new)
+If you still can't figure out the problem, feel free to open an issue on [GitHub](https://github.com/dyng/ramen/issues/new)
 
 ## Special Thanks
 

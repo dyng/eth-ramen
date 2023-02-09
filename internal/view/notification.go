@@ -7,6 +7,11 @@ import (
 	"github.com/rivo/tview"
 )
 
+const (
+	// notificationMinHeight is the minimum height of the notification.
+	notificationMinHeight = 10
+)
+
 type Notification struct {
 	*tview.TextView
 	app     *App
@@ -97,8 +102,8 @@ func (n *Notification) Draw(screen tcell.Screen) {
 func (n *Notification) SetCentral(x int, y int, width int, height int) {
 	dialogWidth := width - width/3
 	dialogHeight := height / 4
-	if dialogHeight < 15 {
-		dialogHeight = 15
+	if dialogHeight < notificationMinHeight {
+		dialogHeight = notificationMinHeight
 	}
 	dialogX := x + ((width - dialogWidth) / 2)
 	dialogY := y + ((height - dialogHeight) / 2)

@@ -59,8 +59,8 @@ func (c *Contract) Call(method string, args ...any) ([]any, error) {
 	return c.service.provider.CallContract(c.address, c.abi, method, args...)
 }
 
-// Transact invokes a non-constant method of this contract. This will make changes to blockchain state and consume ethers.
-func (c *Contract) Transact(signer *Signer, method string, args ...any) (common.Hash, error) {
+// Send invokes a non-constant method of this contract. This method will sign and send the transaction to the network.
+func (c *Contract) Send(signer *Signer, method string, args ...any) (common.Hash, error) {
 	_, ok := c.abi.Methods[method]
 	if !ok {
 		return common.Hash{}, errors.Errorf("Method %s is not found in contract", method)

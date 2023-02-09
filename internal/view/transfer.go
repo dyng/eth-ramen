@@ -15,6 +15,13 @@ import (
 	"github.com/rivo/tview"
 )
 
+const (
+	// transferDialogMinHeight is the minimum height of the transfer dialog.
+	transferDialogMinHeight = 10
+	// transferDialogMinWidth is the minimum width of the transfer dialog.
+	transferDialogMinWidth  = 50
+)
+
 type TransferDialog struct {
 	*tview.Form
 	app       *App
@@ -107,7 +114,7 @@ func (d *TransferDialog) doTransfer() {
 	if err != nil {
 		d.app.root.NotifyError(format.FineErrorMessage("Failed to complete transfer", err))
 	} else {
-		d.app.root.NotifyInfo(fmt.Sprintf("Transaction has been submitted. TxnHash: %s", hash))
+		d.app.root.NotifyInfo(fmt.Sprintf("Transaction has been submitted.\n\nTxnHash: %s", hash))
 	}
 }
 
@@ -151,8 +158,11 @@ func (d *TransferDialog) Draw(screen tcell.Screen) {
 func (d *TransferDialog) SetCentral(x int, y int, width int, height int) {
 	dialogWidth := width - width/2
 	dialogHeight := style.AvatarSize + 12
-	if dialogHeight < 10 {
-		dialogHeight = 10
+	if dialogHeight < transferDialogMinHeight {
+		dialogHeight = transferDialogMinHeight
+	}
+	if dialogWidth < transferDialogMinWidth {
+		dialogWidth = transferDialogMinWidth
 	}
 	dialogX := x + ((width - dialogWidth) / 2)
 	dialogY := y + ((height - dialogHeight) / 2)
