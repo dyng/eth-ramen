@@ -85,6 +85,11 @@ func (a *Account) UpdateBalance() bool {
 	return err == nil
 }
 
+// ClearCache will clear cached balance
+func (a *Account) ClearCache() {
+	a.balance.Store(nil)
+}
+
 // GetTransactions returns transactions of this account.
 func (a *Account) GetTransactions() (common.Transactions, error) {
 	return a.service.GetTransactionHistory(a.address)

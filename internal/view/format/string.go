@@ -6,9 +6,13 @@ import (
 	"github.com/dyng/ramen/internal/common"
 )
 
-func TruncateText(text string, size int) string {
-	if len(text) > size {
-		return text[:size] + "..."
+func BytesToString(b []byte, limit int) string {
+	return TruncateText(fmt.Sprintf("%x", b), limit)
+}
+
+func TruncateText(text string, limit int) string {
+	if len(text) > limit {
+		return text[:limit] + "..."
 	} else {
 		return text
 	}

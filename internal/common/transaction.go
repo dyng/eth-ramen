@@ -20,6 +20,8 @@ type Transaction interface {
 	Value() BigInt
 
 	Timestamp() uint64
+
+	Data() []byte
 }
 
 // TxnRequest represents a transaction to be submitted for execution

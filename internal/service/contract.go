@@ -44,6 +44,25 @@ func (c *Contract) ImportABI(abiJson string) error {
 	return nil
 }
 
+// ParseCalldata parses calldata into method name and arguments.
+func (c *Contract) ParseCalldata(data []byte) (*abi.Method, []any, error) {
+	if c.abi == nil {
+		return nil, nil, errors.New("ABI is not loaded")
+	}
+
+	m, err := c.abi.MethodById(data[:4])
+	if err != nil {
+		return nil, nil, errors.WithStack(err)
+	}
+
+	args, err := m.Inputs.Unpack(data[4:])
+	if err != nil {
+		return nil, nil, errors.WithStack(err)
+	}
+
+	return m, args, nil
+}
+
 // Call invokes a constant method of this contract. The arguments should be unpacked into correct type.
 func (c *Contract) Call(method string, args ...any) ([]any, error) {
 	m, ok := c.abi.Methods[method]

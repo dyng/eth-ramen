@@ -2,6 +2,7 @@ package view
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/dyng/ramen/internal/common"
 	"github.com/dyng/ramen/internal/common/conv"
@@ -14,7 +15,7 @@ import (
 )
 
 type TransactionDetail struct {
-	*tview.Table
+	*tview.Flex
 	app *App
 
 	transaction common.Transaction
@@ -24,12 +25,14 @@ type TransactionDetail struct {
 	from        *util.Section
 	to          *util.Section
 	value       *util.Section
+	data        *util.Section
+	calldata    *CallData
 }
 
 func NewTransactionDetail(app *App) *TransactionDetail {
 	td := &TransactionDetail{
-		Table: tview.NewTable(),
-		app:   app,
+		Flex: tview.NewFlex(),
+		app:  app,
 	}
 
 	// setup layout
@@ -44,28 +47,40 @@ func NewTransactionDetail(app *App) *TransactionDetail {
 func (t *TransactionDetail) initLayout() {
 	s := t.app.config.Style()
 
+	t.SetDirection(tview.FlexRow)
 	t.SetBorder(true)
 	t.SetTitle(style.BoldPadding("Transaction Detail"))
 	t.SetTitleColor(s.TitleColor)
 	t.SetBorderColor(s.BorderColor)
 
+	table := tview.NewTable()
+
 	t.hash = util.NewSectionWithStyle("Hash", util.EmptyValue, s)
-	t.hash.AddToTable(t.Table, 0, 0)
+	t.hash.AddToTable(table, 0, 0)
 
 	t.blockNumber = util.NewSectionWithStyle("BlockNumber", util.EmptyValue, s)
-	t.blockNumber.AddToTable(t.Table, 1, 0)
+	t.blockNumber.AddToTable(table, 1, 0)
 
 	t.timestamp = util.NewSectionWithStyle("Timestamp", util.EmptyValue, s)
-	t.timestamp.AddToTable(t.Table, 2, 0)
+	t.timestamp.AddToTable(table, 2, 0)
 
 	t.from = util.NewSectionWithStyle("From", util.EmptyValue, s)
-	t.from.AddToTable(t.Table, 3, 0)
+	t.from.AddToTable(table, 3, 0)
 
 	t.to = util.NewSectionWithStyle("To", util.EmptyValue, s)
-	t.to.AddToTable(t.Table, 4, 0)
+	t.to.AddToTable(table, 4, 0)
 
 	t.value = util.NewSectionWithStyle("Value", util.EmptyValue, s)
-	t.value.AddToTable(t.Table, 5, 0)
+	t.value.AddToTable(table, 5, 0)
+
+	t.data = util.NewSectionWithStyle("Data", util.EmptyValue, s)
+	t.data.AddToTable(table, 6, 0)
+
+	t.calldata = NewCalldata(t.app)
+
+	// add to layout
+	t.AddItem(table, 7, 0, false)
+	t.AddItem(t.calldata, 0, 1, false)
 }
 
 func (t *TransactionDetail) initKeymap() {
@@ -103,10 +118,12 @@ func (t *TransactionDetail) SetTransaction(transaction common.Transaction) {
 }
 
 func (t *TransactionDetail) ViewSender() {
+	log.Debug("View transaction sender", "transaction", t.transaction.Hash())
 	t.viewAccount(t.from.GetText())
 }
 
 func (t *TransactionDetail) ViewReceiver() {
+	log.Debug("View transaction receiver", "transaction", t.transaction.Hash())
 	t.viewAccount(t.to.GetText())
 }
 
@@ -118,6 +135,14 @@ func (t *TransactionDetail) refresh() {
 	t.from.SetText(txn.From().Hex())
 	t.to.SetText(format.NormalizeReceiverAddress(txn.To()))
 	t.value.SetText(fmt.Sprintf("%s (%g Ether)", txn.Value(), conv.ToEther(txn.Value())))
+	t.data.SetText(format.BytesToString(txn.Data(), 64))
+	t.calldata.Clear()
+	if len(txn.Data()) > 0 {
+		hasABI := t.calldata.ParseData(t.transaction.To(), t.transaction.Data())
+		if !hasABI {
+			t.calldata.WarnNoABI()
+		}
+	}
 }
 
 func (t *TransactionDetail) viewAccount(address string) {
@@ -129,4 +154,76 @@ func (t *TransactionDetail) viewAccount(address string) {
 	} else {
 		t.app.root.ShowAccountPage(account)
 	}
+}
+
+type CallData struct {
+	*tview.Table
+	app     *App
+}
+
+func NewCalldata(app *App) *CallData {
+	c := &CallData{
+		Table:   tview.NewTable(),
+		app:     app,
+	}
+	c.alignFirstColumn()
+	return c
+}
+
+func (c *CallData) Clear() {
+	c.Table.Clear()
+	c.alignFirstColumn()
+}
+
+func (c *CallData) ParseData(address *common.Address, data []byte) bool {
+	s := c.app.config.Style()
+
+	if address == nil || len(data) == 0 {
+		return false
+	}
+
+	contract, err := c.app.service.GetContract(*address)
+	if err != nil {
+		log.Error("Failed to fetch contract", "address", address, "error", err)
+		return false
+	}
+
+	if !contract.HasABI() {
+		return false
+	}
+
+	method, args, err := contract.ParseCalldata(data)
+	if err != nil {
+		log.Error("Failed to parse calldata", "address", address, "error", err)
+		return false
+	}
+
+	// set method name
+	c.SetCell(0, 1, tview.NewTableCell("[dodgerblue::b]function[-:-:-]"))
+	c.SetCell(0, 2, tview.NewTableCell(method.Name).SetAttributes(tcell.AttrBold))
+
+	// set arguments
+	for i, argVal := range args {
+		arg := method.Inputs[i]
+
+		valStr, err := conv.PackArgument(arg.Type, argVal)
+		if err != nil {
+			log.Error("Failed to pack argument", "value", argVal, "type", arg.Type, "error", err)
+			valStr = "ERROR"
+		}
+
+		c.SetCell(i+1, 0, tview.NewTableCell(""))
+		c.SetCell(i+1, 1, tview.NewTableCell(arg.Name).SetTextColor(s.SectionColor2))
+		c.SetCell(i+1, 2, tview.NewTableCell(valStr))
+	}
+
+	return true
+}
+
+func (c *CallData) WarnNoABI() {
+	c.SetCell(0, 1, tview.NewTableCell("[crimson]cannot decode calldata as ABI is unavailable[-]"))
+}
+
+func (c *CallData) alignFirstColumn() {
+	c.SetCell(0, 0, tview.NewTableCell(strings.Repeat(" ", 11)))
 }

@@ -60,6 +60,11 @@ func (t *esTransaction) Value() common.BigInt {
 	return t.value
 }
 
+// Data implements common.Transaction
+func (t *esTransaction) Data() []byte {
+	return t.data
+}
+
 type txJSON struct {
 	BlockNumber      int64           `json:"blockNumber,string"`
 	TimeStamp        uint64          `json:"timeStamp,string"`

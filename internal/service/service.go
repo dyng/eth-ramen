@@ -104,16 +104,27 @@ func (s *Service) GetEthPrice() (*decimal.Decimal, error) {
 func (s *Service) GetAccount(address string) (*Account, error) {
 	addr := gcommon.HexToAddress(address)
 
+	// return cached account if exists
+	if account, found := s.GetCache(addr, TypeWallet); found {
+		a := account.(*Account)
+		a.ClearCache()
+		return a, nil
+	}
+
+
 	code, err := s.provider.GetCode(addr)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Account{
+	a := &Account{
 		service: s,
 		address: addr,
 		code:    code,
-	}, nil
+	}
+	s.SetCache(addr, TypeWallet, a, cache.NoExpiration)
+
+	return a, nil
 }
 
 // GetLatestTransactions returns transactions of last n blocks.
@@ -246,13 +257,16 @@ func (s *Service) transactionsByAlchemy(address common.Address) (common.Transact
 
 // GetContract returns a contract object of given address.
 func (s *Service) GetContract(address common.Address) (*Contract, error) {
+	// return cached contract if exists
+	if contract, found := s.GetCache(address, TypeContract); found {
+		c := contract.(*Contract)
+		c.ClearCache()
+		return c, nil
+	}
+
 	account, err := s.GetAccount(address.Hex())
 	if err != nil {
 		return nil, err
-	}
-
-	if account.GetType() != TypeContract {
-		return nil, errors.Errorf("Address %s is not a contract account", address.Hex())
 	}
 
 	return s.ToContract(account)
@@ -281,41 +295,39 @@ func (s *Service) GetSigner(privateKey string) (*Signer, error) {
 
 // ToContract upgrade an account object to a contract.
 func (s *Service) ToContract(account *Account) (*Contract, error) {
+	// return cached contract if exists
+	if contract, found := s.GetCache(account.address, TypeContract); found {
+		c := contract.(*Contract)
+		c.ClearCache()
+		return c, nil
+	}
+
 	if account.GetType() != TypeContract {
 		return nil, errors.Errorf("Address %s is not a contract account", account.address.Hex())
 	}
 
-	// return cached contract if exists (only use cached abi and source)
-	if contract, found := s.GetCache(account.address); found {
-		c := contract.(*Contract)
-		c.Account = account
-		return c, nil
-	}
+	var contract *Contract
 
 	if s.GetNetwork().NetType() == TypeDevnet {
-		c := &Contract{
+		contract = &Contract{
 			Account: account,
 		}
-		s.PutCache(account.address, c, cache.NoExpiration)
-		return c, nil
-	}
+	} else {
+		source, abi, err := s.esclient.GetSourceCode(account.address)
+		if err != nil {
+			return nil, err
+		}
 
-	source, abi, err := s.esclient.GetSourceCode(account.address)
-	if err != nil {
-		return nil, err
-	}
-
-	if source == "" {
-		return &Contract{
+		contract = &Contract{
 			Account: account,
-		}, nil
+			abi:     abi,
+			source:  source,
+		}
 	}
 
-	c := &Contract{
-		Account: account,
-		abi:     abi,
-		source:  source,
-	}
-	s.PutCache(account.address, c, cache.NoExpiration)
-	return c, nil
+
+	// populate cache
+	s.SetCache(account.address, TypeContract, contract, cache.NoExpiration)
+
+	return contract, nil
 }
