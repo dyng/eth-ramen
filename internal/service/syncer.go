@@ -22,7 +22,7 @@ const (
 	TopicTick = "service:tick"
 
 	// UpdatePeriod is the time duration between two updates
-	UpdatePeriod = 5 * time.Second
+	UpdatePeriod = 10 * time.Second
 )
 
 type ChainData struct {
@@ -80,6 +80,8 @@ func (s *Syncer) Start() error {
 func (s *Syncer) sync() {
 	for {
 		select {
+		case err := <-s.ethSub.Err():
+			log.Error("Subscription channel failed", "error", err)
 		case newHeader := <-s.chBlock:
 			log.Info("Received new block header", "hash", newHeader.Hash(),
 				"number", newHeader.Number)

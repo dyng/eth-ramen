@@ -91,7 +91,7 @@ func (t *TransactionList) KeyMaps() util.KeyMaps {
 	keymaps = append(keymaps, util.KeyMap{
 		Key:         util.KeyF,
 		Shortcut:    "f",
-		Description: "View Sender",
+		Description: "To Sender",
 		Handler: func(*tcell.EventKey) {
 			t.ViewSender()
 		},
@@ -100,7 +100,7 @@ func (t *TransactionList) KeyMaps() util.KeyMaps {
 	keymaps = append(keymaps, util.KeyMap{
 		Key:         util.KeyT,
 		Shortcut:    "t",
-		Description: "View Receiver",
+		Description: "To Receiver",
 		Handler: func(*tcell.EventKey) {
 			t.ViewReceiver()
 		},

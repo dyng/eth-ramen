@@ -123,7 +123,7 @@ func (r *Root) KeyMaps() util.KeyMaps {
 	keymaps = append(keymaps, util.KeyMap{
 		Key:         util.KeySlash,
 		Shortcut:    "/",
-		Description: "Search Account",
+		Description: "Search",
 		Handler: func(*tcell.EventKey) {
 			r.ShowQueryDialog()
 		},
@@ -133,7 +133,7 @@ func (r *Root) KeyMaps() util.KeyMaps {
 	keymaps = append(keymaps, util.KeyMap{
 		Key:         util.KeyH,
 		Shortcut:    "h",
-		Description: "Back to Home",
+		Description: "Home",
 		Handler: func(*tcell.EventKey) {
 			r.ShowHomePage()
 		},
