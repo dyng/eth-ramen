@@ -14,6 +14,11 @@ import (
 	"github.com/rivo/tview"
 )
 
+var (
+	// width of first column
+	indentation = len("BlockNumber")
+)
+
 type TransactionDetail struct {
 	*tview.Flex
 	app *App
@@ -136,13 +141,7 @@ func (t *TransactionDetail) refresh() {
 	t.to.SetText(format.NormalizeReceiverAddress(txn.To()))
 	t.value.SetText(fmt.Sprintf("%s (%g Ether)", txn.Value(), conv.ToEther(txn.Value())))
 	t.data.SetText(format.BytesToString(txn.Data(), 64))
-	t.calldata.Clear()
-	if len(txn.Data()) > 0 {
-		hasABI := t.calldata.ParseData(t.transaction.To(), t.transaction.Data())
-		if !hasABI {
-			t.calldata.WarnNoABI()
-		}
-	}
+	t.calldata.LoadAsync(t.transaction.To(), t.transaction.Data())
 }
 
 func (t *TransactionDetail) viewAccount(address string) {
@@ -159,12 +158,14 @@ func (t *TransactionDetail) viewAccount(address string) {
 type CallData struct {
 	*tview.Table
 	app     *App
+	spinner *util.Spinner
 }
 
 func NewCalldata(app *App) *CallData {
 	c := &CallData{
 		Table:   tview.NewTable(),
 		app:     app,
+		spinner: util.NewSpinner(app.Application),
 	}
 	c.alignFirstColumn()
 	return c
@@ -175,14 +176,41 @@ func (c *CallData) Clear() {
 	c.alignFirstColumn()
 }
 
-func (c *CallData) ParseData(address *common.Address, data []byte) bool {
+func (c *CallData) LoadAsync(address *common.Address, data []byte) {
+	// clear previous data
+	c.Clear()
+
+	if len(data) > 0 && address != nil {
+		// show spinner
+		c.spinner.StartAndShow()
+
+		go func() {
+			// populate cache
+			_, err := c.app.service.GetContract(*address)
+			if err != nil {
+				log.Error("Failed to fetch contract", "address", *address, "error", err)
+				c.spinner.StopAndHide()
+			} else {
+				c.app.QueueUpdateDraw(func() {
+					hasABI := c.parseData(*address, data)
+					if !hasABI {
+						c.warnNoABI()
+					}
+					c.spinner.StopAndHide()
+				})
+			}
+		}()
+	}
+}
+
+func (c *CallData) parseData(address common.Address, data []byte) bool {
 	s := c.app.config.Style()
 
-	if address == nil || len(data) == 0 {
+	if len(data) == 0 {
 		return false
 	}
 
-	contract, err := c.app.service.GetContract(*address)
+	contract, err := c.app.service.GetContract(address)
 	if err != nil {
 		log.Error("Failed to fetch contract", "address", address, "error", err)
 		return false
@@ -220,10 +248,27 @@ func (c *CallData) ParseData(address *common.Address, data []byte) bool {
 	return true
 }
 
-func (c *CallData) WarnNoABI() {
+func (c *CallData) warnNoABI() {
 	c.SetCell(0, 1, tview.NewTableCell("[crimson]cannot decode calldata as ABI is unavailable[-]"))
 }
 
+func (c *CallData) setSpinnerRect() {
+	x, y, _, _ := c.GetInnerRect()
+	c.spinner.SetRect(x+indentation+1, y, 0, 0)
+}
+
 func (c *CallData) alignFirstColumn() {
-	c.SetCell(0, 0, tview.NewTableCell(strings.Repeat(" ", 11)))
+	c.SetCell(0, 0, tview.NewTableCell(strings.Repeat(" ", indentation)))
+}
+
+// SetRect implements tview.SetRect
+func (c *CallData) SetRect(x int, y int, width int, height int) {
+	c.Table.SetRect(x, y, width, height)
+	c.setSpinnerRect()
+}
+
+// Draw implements tview.Primitive
+func (c *CallData) Draw(screen tcell.Screen) {
+	c.Table.Draw(screen)
+	c.spinner.Draw(screen)
 }
