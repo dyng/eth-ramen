@@ -9,7 +9,7 @@ import (
 
 const (
 	testEtherscanEndpoint = "https://api.etherscan.io/api"
-	testEtherscanApiKey = "IQVJUFHSK9SG8SVDK3MKPIJHQR3137GCPQ"
+	testEtherscanApiKey   = "IQVJUFHSK9SG8SVDK3MKPIJHQR3137GCPQ"
 
 	usdtContractAddress = "0xdAC17F958D2ee523a2206206994597C13D831ec7"
 )

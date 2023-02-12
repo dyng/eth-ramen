@@ -15,7 +15,7 @@ const (
 	testAlchemyEndpoint = "wss://eth-mainnet.g.alchemy.com/v2/1DYmd-KT-4evVd_-O56p5HTgk2t5cuVu"
 
 	usdtContractAddress = "0xdAC17F958D2ee523a2206206994597C13D831ec7"
-	usdtFunctionABI = "[{\"constant\":true,\"inputs\":[{\"name\":\"who\",\"type\":\"address\"}],\"name\":\"balanceOf\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}]"
+	usdtFunctionABI     = "[{\"constant\":true,\"inputs\":[{\"name\":\"who\",\"type\":\"address\"}],\"name\":\"balanceOf\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}]"
 )
 
 func TestBatchTransactionByHash_NoError(t *testing.T) {
@@ -50,7 +50,7 @@ func TestCallContract_NoError(t *testing.T) {
 
 	// process
 	result, err := provider.CallContract(usdtAddr, &usdtABI, "balanceOf", argAddr)
-	
+
 	// verify
 	assert.NoError(t, err)
 	balance := result[0].(common.BigInt)

@@ -11,9 +11,9 @@ type Spinner struct {
 	*tview.Box
 	app *tview.Application
 
-	display   bool
-	counter   int
-	ticker    *time.Ticker
+	display bool
+	counter int
+	ticker  *time.Ticker
 }
 
 var (
@@ -22,10 +22,10 @@ var (
 
 func NewSpinner(app *tview.Application) *Spinner {
 	spinner := &Spinner{
-		Box:       &tview.Box{},
-		app:       app,
-		display:   false,
-		counter:   0,
+		Box:     &tview.Box{},
+		app:     app,
+		display: false,
+		counter: 0,
 	}
 	spinner.SetBorder(false)
 	spinner.SetBackgroundColor(tview.Styles.PrimitiveBackgroundColor)

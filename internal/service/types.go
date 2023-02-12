@@ -17,8 +17,8 @@ const (
 )
 
 type Network struct {
-	Name    string `json:"name"`
-	Title   string `json:"title"`
+	Name    string   `json:"name"`
+	Title   string   `json:"title"`
 	ChainId *big.Int `json:"chainId"`
 }
 

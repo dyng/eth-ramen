@@ -27,4 +27,3 @@ func FromGwei(n *big.Float) *big.Int {
 	i, _ := new(big.Float).Mul(n, big.NewFloat(params.GWei)).Int(nil)
 	return i
 }
-

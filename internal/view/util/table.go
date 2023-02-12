@@ -8,7 +8,7 @@ import (
 
 type Section struct {
 	titleCell *tview.TableCell
-	textCell *tview.TableCell
+	textCell  *tview.TableCell
 }
 
 func NewSection(title string, text string) *Section {
@@ -33,7 +33,7 @@ func NewSectionWithColor(title string, titleColor tcell.Color, text string, text
 
 	return &Section{
 		titleCell: titleCell,
-		textCell: textCell,
+		textCell:  textCell,
 	}
 }
 
@@ -55,5 +55,5 @@ func (s *Section) SetText(text string) {
 
 func (s *Section) AddToTable(table *tview.Table, row, column int) {
 	table.SetCell(row, column, s.titleCell)
-	table.SetCell(row, column + 1, s.textCell)
+	table.SetCell(row, column+1, s.textCell)
 }

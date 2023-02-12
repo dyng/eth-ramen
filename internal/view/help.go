@@ -35,7 +35,7 @@ func (h *Help) AddKeyMaps(keymaps util.KeyMaps) {
 }
 
 func (h *Help) Clear() {
-	for i := h.GetRowCount()-1; i > 0; i-- {
+	for i := h.GetRowCount() - 1; i > 0; i-- {
 		h.RemoveRow(i)
 	}
 }

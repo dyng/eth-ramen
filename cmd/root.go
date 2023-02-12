@@ -17,7 +17,7 @@ const (
 )
 
 var (
-	config = conf.NewConfig()
+	config  = conf.NewConfig()
 	rootCmd = NewRootCmd()
 )
 
@@ -91,7 +91,7 @@ func run(cmd *cobra.Command, args []string) {
 	// setup logger
 	initLogger()
 
-	// read and parse configurations from config file 
+	// read and parse configurations from config file
 	err := conf.ParseConfig(config)
 	if err != nil {
 		common.Exit("Cannot parse config file: %v", err)

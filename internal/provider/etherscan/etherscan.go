@@ -101,7 +101,7 @@ func (c *EtherscanClient) GetSourceCode(address common.Address) (string, *abi.AB
 	if code.SourceCode == "" {
 		return "", nil, nil
 	}
-	
+
 	parsedAbi, err := abi.JSON(strings.NewReader(code.ABI))
 	if err != nil {
 		return "", nil, errors.WithStack(err)

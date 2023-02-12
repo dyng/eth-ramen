@@ -12,7 +12,7 @@ import (
 // Contract represents a smart contract deployed on Ethereum network.
 type Contract struct {
 	*Account
-	abi *abi.ABI
+	abi    *abi.ABI
 	source string
 }
 

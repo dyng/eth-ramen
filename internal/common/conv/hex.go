@@ -27,4 +27,3 @@ func Trim0xPrefix(s string) string {
 func has0xPrefix(s string) bool {
 	return len(s) >= 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X')
 }
-

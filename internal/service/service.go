@@ -111,7 +111,6 @@ func (s *Service) GetAccount(address string) (*Account, error) {
 		return a, nil
 	}
 
-
 	code, err := s.provider.GetCode(addr)
 	if err != nil {
 		return nil, err
@@ -324,7 +323,6 @@ func (s *Service) ToContract(account *Account) (*Contract, error) {
 			source:  source,
 		}
 	}
-
 
 	// populate cache
 	s.SetCache(account.address, TypeContract, contract, cache.NoExpiration)
