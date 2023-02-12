@@ -1,6 +1,26 @@
 ## Ramen - A Terminal Interface for Ethereum 🍜
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/dyng/ramen)](https://goreportcard.com/report/github.com/dyng/ramen)
+[![Release](https://img.shields.io/github/v/release/dyng/ramen.svg)](https://github.com/derailed/k9s/releases)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/mum4k/termdash/blob/master/LICENSE)
+
+
 Ramen is a good-old terminal UI to interact with [Ethereum Network](https://ethereum.org/en/). It allows you to observe latest chain status, check account's balance and transaction history, navigate blocks and transactions, view smart contract's source code or call its functions, and many things more!
+
+## Features
+
+- [x] View an account's type, balance and transaction history.
+- [x] View transaction details, including basic information, transaction data, gas usage, and related events. Automatically decode transaction data and display it in a human-readable format.
+- [x] Import private key for transfer and calling of [non-constant](https://docs.ethers.org/v4/api-contract.html) functions.
+- [ ] View contract's [ABI](https://docs.soliditylang.org/en/v0.8.13/abi-spec.html), source code, and storage.
+- [x] Sync with network to view latest blocks and transactions.
+- [ ] Show account's assets, including [ERC20](https://ethereum.org/en/developers/docs/standards/tokens/erc-20/) tokens and [ERC721](https://ethereum.org/en/developers/docs/standards/tokens/erc-721/) NFTs.
+- [ ] Windows support.
+- [ ] [ENS](https://ens.domains/) support.
+- [ ] Navigate back and forth between pages.
+- [ ] Customize key bindings and color scheme.
+- [ ] Support more Ethereum JSON-RPC providers.
+- [ ] Support Polygon, Binance Smart Chain, and other EVM-compatible chains.
 
 Here are some demos:
 
@@ -80,7 +100,7 @@ Then you can start Ramen by running the following command:
 ./ramen --network goerli
 ```
 
-### Key Bindings
+#### Key Bindings
 
 Ramen inherits key bindings from underlying UI framework [tview](https://github.com/rivo/tview), the most frequently used keys are the following:
 
@@ -90,7 +110,7 @@ Ramen inherits key bindings from underlying UI framework [tview](https://github.
 |`enter`|Select an element|
 |`tab`|Switch focus among elements|
 
-### Connect Local Network
+#### Connect Local Network
 
 [Hardhat](https://hardhat.org/) / [Ganache](https://trufflesuite.com/ganache/) provides a local Ethereum network for development purpose. Ramen can be used as an user interface for these local networks.
 
