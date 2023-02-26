@@ -10,10 +10,11 @@ Ramen is a good-old terminal UI to interact with [Ethereum Network](https://ethe
 ## Features
 
 - [x] View an account's type, balance and transaction history.
-- [x] View transaction details, including basic information, transaction data, gas usage, and related events. Automatically decode transaction data and display it in a human-readable format.
+- [x] View transaction details, including sender/receiver address, value, input data, gas usage and timestamp.
+- [x] Decode transaction input data and display it in a human-readable format.
 - [x] Import private key for transfer and calling of [non-constant](https://docs.ethers.org/v4/api-contract.html) functions.
 - [ ] View contract's [ABI](https://docs.soliditylang.org/en/v0.8.13/abi-spec.html), source code, and storage.
-- [x] Sync with network to view latest blocks and transactions.
+- [x] Keep syncing with network to retrieve latest blocks and transactions.
 - [ ] Show account's assets, including [ERC20](https://ethereum.org/en/developers/docs/standards/tokens/erc-20/) tokens and [ERC721](https://ethereum.org/en/developers/docs/standards/tokens/erc-721/) NFTs.
 - [ ] Windows support.
 - [ ] [ENS](https://ens.domains/) support.
@@ -22,21 +23,9 @@ Ramen is a good-old terminal UI to interact with [Ethereum Network](https://ethe
 - [ ] Support more Ethereum JSON-RPC providers.
 - [ ] Support Polygon, Binance Smart Chain, and other EVM-compatible chains.
 
-Here are some demos:
+<img src="https://user-images.githubusercontent.com/1492050/221394602-d7aaba0e-b9f8-4d73-8ddb-e81d45f289ed.gif"/>
 
-1. View accounts and transactions
-
-    <img src="https://user-images.githubusercontent.com/1492050/216913618-9d9d708a-d350-442d-83c2-3a6c7a77614f.gif"/>
-
-2. Call contract's function
-
-    <img src="https://user-images.githubusercontent.com/1492050/216915763-f6c429a5-f980-4dcc-87ac-77b6cd65b62a.gif"/>
-
-3. Sign in and transfer ethers
-
-    <img src="https://user-images.githubusercontent.com/1492050/216917516-8cf8b02b-ba95-466a-ac6c-450f53b7f6e4.gif"/>
-
-Additionally, **Ramen is also well designed for smart contract development**. Ramen can connect to a local chain (such as the one provided by Hardhat) to view transaction history of smart contract in development, call functions for testing, or verify its storage. Just works like Etherscan, but for your own chain!
+Additionally, Ramen is also well designed for smart contract development. **Ramen can connect to a local chain (such as the one provided by [Hardhat](https://hardhat.org/))** to view transaction history of smart contract in development, call functions for testing, or verify its storage. Just works like [Etherscan](https://etherscan.io/), but for your own chain!
 
 ## Installation
 
