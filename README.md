@@ -12,6 +12,7 @@ Ramen is a good-old terminal UI to interact with [Ethereum Network](https://ethe
 - [x] View an account's type, balance and transaction history.
 - [x] View transaction details, including sender/receiver address, value, input data, gas usage and timestamp.
 - [x] Decode transaction input data and display it in a human-readable format.
+- [x] Call contract functions.
 - [x] Import private key for transfer and calling of [non-constant](https://docs.ethers.org/v4/api-contract.html) functions.
 - [ ] View contract's [ABI](https://docs.soliditylang.org/en/v0.8.13/abi-spec.html), source code, and storage.
 - [x] Keep syncing with network to retrieve latest blocks and transactions.
