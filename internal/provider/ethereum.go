@@ -10,6 +10,7 @@ import (
 	"github.com/dyng/ramen/internal/common/conv"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -41,7 +42,6 @@ type txExtraInfo struct {
 	BlockNumber      *string         `json:"blockNumber,omitempty"`
 	BlockHash        *common.Hash    `json:"blockHash,omitempty"`
 	From             *common.Address `json:"from,omitempty"`
-	TransactionIndex uint            `json:"transactionIndex,omitempty"`
 	Timestamp        uint64          `json:"timeStamp,omitempty"`
 }
 
@@ -55,6 +55,83 @@ func (tx *rpcTransaction) UnmarshalJSON(msg []byte) error {
 func (tx *rpcTransaction) ToTransaction() common.Transaction {
 	blockNumer, _ := conv.HexToInt(*tx.BlockNumber)
 	return common.WrapTransaction(tx.tx, big.NewInt(blockNumer), tx.From, tx.Timestamp)
+}
+
+type rpcBlock struct {
+	*types.Header
+	rpcBlockBody
+}
+
+type rpcBlockBody struct {
+	Hash         common.Hash      `json:"hash"`
+	Transactions []rpcTransaction `json:"transactions"`
+	UncleHashes  []common.Hash    `json:"uncles"`
+}
+
+func (b *rpcBlock) UnmarshalJSON(msg []byte) error {
+	if err := json.Unmarshal(msg, &b.Header); err != nil {
+		return errors.WithStack(err)
+	}
+	if err := json.Unmarshal(msg, &b.rpcBlockBody); err != nil {
+		return errors.WithStack(err)
+	}
+	return nil
+}
+
+func (b *rpcBlock) ToBlock() *common.Block {
+	txns := make(types.Transactions, len(b.Transactions))
+	for i, tx := range b.Transactions {
+		txns[i] = tx.tx
+	}
+	return types.NewBlockWithHeader(b.Header).WithBody(txns, []*types.Header{})
+}
+
+// forkchainSigner is a signer handles mixed transactions of different chains (often the case of local fork chain)
+type forkchainSigner struct {
+	chainId *big.Int
+	signers map[uint64]types.Signer
+}
+
+func newForkchainSigner(chainId *big.Int) types.Signer {
+	return &forkchainSigner{
+		chainId: chainId,
+		signers: make(map[uint64]types.Signer),
+	}
+}
+
+func (s forkchainSigner) getSigner(tx *types.Transaction) types.Signer {
+	signer, ok := s.signers[tx.ChainId().Uint64()]
+	if !ok {
+		signer = types.NewLondonSigner(tx.ChainId())
+		s.signers[tx.ChainId().Uint64()] = signer
+	}
+	return signer
+}
+
+// ChainID implements types.Signer
+func (s forkchainSigner) ChainID() *big.Int {
+	return s.chainId
+}
+
+// Equal implements types.Signer
+func (s forkchainSigner) Equal(s2 types.Signer) bool {
+	x, ok := s2.(forkchainSigner)
+	return ok && x.chainId.Cmp(s.chainId) == 0
+}
+
+// Hash implements types.Signer
+func (s forkchainSigner) Hash(tx *types.Transaction) common.Hash {
+	return s.getSigner(tx).Hash(tx)
+}
+
+// Sender implements types.Signer
+func (s forkchainSigner) Sender(tx *types.Transaction) (common.Address, error) {
+	return s.getSigner(tx).Sender(tx)
+}
+
+// SignatureValues implements types.Signer
+func (s forkchainSigner) SignatureValues(tx *types.Transaction, sig []byte) (R *big.Int, S *big.Int, V *big.Int, err error) {
+	return s.getSigner(tx).SignatureValues(tx, sig)
 }
 
 type Provider struct {
@@ -101,7 +178,7 @@ func (p *Provider) GetNetwork() (common.BigInt, error) {
 			return nil, errors.WithStack(err)
 		}
 		p.chainId = chainId
-		p.signer = types.NewLondonSigner(chainId)
+		p.signer = newForkchainSigner(chainId)
 	}
 	return p.chainId, nil
 }
@@ -154,6 +231,35 @@ func (p *Provider) GetBlockByNumber(number common.BigInt) (*common.Block, error)
 	defer cancel()
 	block, err := p.client.BlockByNumber(ctx, number)
 	return block, errors.WithStack(err)
+}
+
+func (p *Provider) BatchBlockByNumber(numberList []common.BigInt) ([]*common.Block, error) {
+	size := len(numberList)
+	rpcRes := make([]rpcBlock, size)
+	reqs := make([]rpc.BatchElem, size)
+	for i := range reqs {
+		reqs[i] = rpc.BatchElem{
+			Method: "eth_getBlockByNumber",
+			Args:   []any{toBlockNumArg(numberList[i]), true},
+			Result: &rpcRes[i],
+		}
+	}
+
+	ctx, cancel := p.createContext()
+	defer cancel()
+
+	err := p.rpcClient.BatchCallContext(ctx, reqs)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	result := make([]*common.Block, size)
+	for i := range result {
+		result[i] = rpcRes[i].ToBlock()
+	}
+
+	// FIXME: individual request error handling
+	return result, nil
 }
 
 func (p *Provider) BatchTransactionByHash(hashList []common.Hash) (common.Transactions, error) {
@@ -278,4 +384,15 @@ func (p *Provider) SubscribeNewHead(ch chan<- *common.Header) (ethereum.Subscrip
 
 func (p *Provider) createContext() (context.Context, context.CancelFunc) {
 	return context.WithTimeout(context.Background(), DefaultTimeout)
+}
+
+func toBlockNumArg(number *big.Int) string {
+	if number == nil {
+		return "latest"
+	}
+	pending := big.NewInt(-1)
+	if number.Cmp(pending) == 0 {
+		return "pending"
+	}
+	return hexutil.EncodeBig(number)
 }

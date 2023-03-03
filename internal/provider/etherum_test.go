@@ -41,6 +41,28 @@ func TestBatchTransactionByHash_NoError(t *testing.T) {
 	}
 }
 
+func TestBatchBlockByNumber_NoError(t *testing.T) {
+	// prepare
+	provider := NewProvider(testAlchemyEndpoint, ProviderAlchemy)
+
+	// process
+	numberList := []common.BigInt{
+		big.NewInt(16748002),
+		big.NewInt(16748001),
+		big.NewInt(16748000),
+	}
+	blocks, err := provider.BatchBlockByNumber(numberList)
+
+	// verify
+	assert.NoError(t, err)
+	assert.Len(t, blocks, 3)
+	for _, block := range blocks {
+		assert.NotNil(t, block.Number(), "block number should not be nil")
+		assert.NotNil(t, block.Hash(), "hash should not be nil")
+		assert.NotEmpty(t, block.Transactions(), "transactions should not be empty")
+	}
+}
+
 func TestCallContract_NoError(t *testing.T) {
 	// prepare
 	provider := NewProvider(testAlchemyEndpoint, ProviderAlchemy)
