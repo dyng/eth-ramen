@@ -95,9 +95,9 @@ func (a *App) firstSync() error {
 	a.root.home.transactionList.LoadAsync(func() (common.Transactions, error) {
 		netType := a.service.GetNetwork().NetType()
 		if netType == serv.TypeDevnet {
-			return a.service.GetLatestTransactions(100)
+			return a.service.GetLatestTransactions(100, 5)
 		} else {
-			return a.service.GetLatestTransactions(1)
+			return a.service.GetLatestTransactions(100, 1)
 		}
 	})
 

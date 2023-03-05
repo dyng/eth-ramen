@@ -126,15 +126,15 @@ func (s *Service) GetAccount(address string) (*Account, error) {
 	return a, nil
 }
 
-// GetLatestTransactions returns transactions of last n blocks.
-func (s *Service) GetLatestTransactions(n int) (common.Transactions, error) {
+// GetLatestTransactions returns last n transactions of at most nBlock blocks.
+func (s *Service) GetLatestTransactions(n int, nBlock int) (common.Transactions, error) {
 	max, err := s.GetBlockHeight()
 	if err != nil {
 		return nil, err
 	}
 
 	min := uint64(1)
-	cnt := uint64(n)
+	cnt := uint64(nBlock)
 	if max > cnt-1 {
 		min = max - cnt + 1
 	}
@@ -152,6 +152,10 @@ func (s *Service) GetLatestTransactions(n int) (common.Transactions, error) {
 		}
 
 		transactions = append(transactions, txns...)
+
+		if len(transactions) >= n {
+			break
+		}
 	}
 
 	return transactions, nil
@@ -189,7 +193,7 @@ func (s *Service) GetTransactionHistory(address common.Address) (common.Transact
 }
 
 func (s *Service) transactionsByTraverse(address common.Address) (common.Transactions, error) {
-	candidates, err := s.GetLatestTransactions(100)
+	candidates, err := s.GetLatestTransactions(100, 5)
 	if err != nil {
 		return nil, err
 	}
